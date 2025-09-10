@@ -1,0 +1,515 @@
+<div>
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+
+      function buildFeedbackButton(config) {
+        if (!config.feedback || !config.feedback.enable) return;
+        const url = config.feedback.url;
+        if (!url) return;
+
+        // Inject CSS once
+        if (!document.getElementById("feedback-style")) {
+          const style = document.createElement("style");
+          style.id = "feedback-style";
+          style.textContent = `
+      .feedback {
+        background-color: #31B0D5;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 4px;
+        border: 1px solid #46b8da;
+        cursor: pointer;
+      }
+      .feedback:hover {
+        background-color: #269abc;
+      }
+      #mybutton {
+        position: fixed;
+        bottom: -4px;
+        right: 10px;
+        z-index: 9999;
+      }
+      .feedback-modal {
+        position: fixed; inset: 0;
+        display: none; justify-content: center; align-items: center;
+        background: rgba(0,0,0,0.7); z-index: 10000; padding: 20px;
+      }
+      .feedback-wrapper {
+        width: 100%; max-width: 600px; height: 80%;
+        background: #fff; border-radius: 8px; overflow: hidden; position: relative;
+      }
+      .feedback-close {
+        position: absolute; top: 6px; right: 10px;
+        font-size: 24px; font-weight: 700; cursor: pointer; z-index: 2;
+      }
+      .feedback-wrapper iframe { width: 100%; height: 100%; border: 0; }
+    `;
+          document.head.appendChild(style);
+        }
+
+        // Create button
+        const container = document.createElement("div");
+        container.id = "mybutton";
+        const btn = document.createElement("button");
+        btn.className = "feedback";
+        btn.textContent = "Feedback";
+        container.appendChild(btn);
+        document.body.appendChild(container);
+
+        // Modal
+        const modal = document.createElement("div");
+        modal.className = "feedback-modal";
+        const wrapper = document.createElement("div");
+        wrapper.className = "feedback-wrapper";
+        const closeBtn = document.createElement("div");
+        closeBtn.className = "feedback-close";
+        closeBtn.textContent = "×";
+        const iframe = document.createElement("iframe");
+        iframe.src = url;
+
+        wrapper.append(closeBtn, iframe);
+        modal.appendChild(wrapper);
+        document.body.appendChild(modal);
+
+        // Events
+        btn.addEventListener("click", () => {
+          modal.style.display = "flex";
+        });
+        closeBtn.addEventListener("click", () => {
+          modal.style.display = "none";
+        });
+      }
+
+      // ✅ Helper: group H5Ps per parent and create tabs
+      function buildH5PTabs() {
+        const all = Array.from(document.querySelectorAll(
+          '.h5p-placeholder'));
+        // if (all.length < 2) return;
+
+        const groups = new Map();
+        all.forEach(ph => {
+          const p = ph.parentElement;
+          if (!groups.has(p)) groups.set(p, []);
+          groups.get(p).push(ph);
+        });
+
+        groups.forEach(group => {
+          // if (group.length < 2) return;
+
+          const first = group[0];
+          const parent = first.parentNode;
+          if (parent.querySelector(':scope > .h5p-tabs-layout')) return;
+
+          // Layout shell
+          const layout = document.createElement('div');
+          layout.className = 'h5p-tabs-layout';
+
+          const sidebar = document.createElement('div');
+          sidebar.className = 'h5p-tabs-sidebar';
+
+          const content = document.createElement('div');
+          content.className = 'h5p-tabs-content';
+
+          parent.insertBefore(layout, first);
+          layout.append(sidebar, content);
+
+          // Build wrappers + tabs
+          const wrappers = [];
+          group.forEach((ph, i) => {
+            if (!ph.id) ph.id = `h5p${i + 1}`;
+
+            const wrapper = document.createElement('div');
+            wrapper.style.display = i === 0 ? 'block' : 'none';
+
+            const title = document.createElement('h4');
+            title.textContent = `Question ${i + 1}`;
+            wrapper.append(title, ph);
+
+            wrappers.push(wrapper);
+            content.appendChild(wrapper);
+
+            const tab = document.createElement('a');
+            tab.href = '#';
+            tab.className = `h5p-tab ${i === 0 ? 'active' : ''}`;
+            tab.textContent = `Question ${i + 1}`;
+            sidebar.appendChild(tab);
+          });
+
+          // Toggle logic
+          const tabs = sidebar.querySelectorAll('.h5p-tab');
+          tabs.forEach((tab, index) => {
+            tab.addEventListener('click', e => {
+              e.preventDefault();
+
+              wrappers.forEach(w => (w.style.display = 'none'));
+              wrappers[index].style.display = 'block';
+
+              tabs.forEach(t => t.classList.remove('active'));
+              tab.classList.add('active');
+
+              setTimeout(() => {
+                window.dispatchEvent(new Event('resize'));
+              }, 50);
+            });
+          });
+        });
+
+        // ✅ Minimal CSS injected once
+        if (!document.getElementById('h5p-tabs-style')) {
+          const style = document.createElement('style');
+          style.id = 'h5p-tabs-style';
+          style.textContent = `
+      .h5p-tabs-layout {
+        background: #fff;
+        display: flex; margin: 0; 
+        padding: 10px;
+        border-radius: 6px;
+      }
+      .h5p-tabs-sidebar {
+        border-radius: 6px;
+        width: 20%; background: #f5f5f5; padding: 10px;
+      }
+      .h5p-tabs-content {
+        width: 80%; padding-block: 10px; padding-inline: 20px;
+      }
+      .h5p-tab {
+        display: block; padding: 8px 10px; margin-bottom: 6px;
+        background: #fff; border: 1px solid #ccc; border-radius: 6px;
+        text-decoration: none; color: #333; text-align: center;
+        transition: background 0.2s, border 0.2s;
+      }
+      .h5p-tab:hover {
+      text-decoration: none;
+        background: #f0f0f0;
+      }
+      .h5p-tab.active {
+        background: #1a73d9; color: #fff; border-color: #1a73d9;
+        font-weight: bold;
+      }
+      /* ✅ Mobile: stack layout */
+      @media (max-width: 768px) {
+        .h5p-tabs-layout {
+          flex-direction: column;
+        }
+        .h5p-tabs-sidebar, .h5p-tabs-content {
+          width: 100%;
+        }
+        .h5p-tabs-sidebar {
+          display: flex; gap: 6px; flex-wrap: wrap;
+        }
+        .h5p-tab {
+          flex: 1; margin-bottom: 0;
+        }
+      }
+    `;
+          document.head.appendChild(style);
+        }
+      }
+
+      // --- CSS-only style injector ---
+      function applyStyles(selector, styles) {
+        let styleEl = document.getElementById("dynamic-style-rules");
+        if (!styleEl) {
+          styleEl = document.createElement("style");
+          styleEl.id = "dynamic-style-rules";
+          document.head.appendChild(styleEl);
+        }
+
+        let cssText = `${selector} {`;
+        Object.entries(styles).forEach(([prop, value]) => {
+          const cssProp = prop.replace(/[A-Z]/g, m => "-" + m
+            .toLowerCase());
+          if (Array.isArray(value)) {
+            // e.g. display: ["none", "important"]
+            cssText += `${cssProp}: ${value[0]} !${value[1]};`;
+          } else {
+            cssText += `${cssProp}: ${value};`;
+          }
+        });
+        cssText += `}\n`;
+
+        styleEl.appendChild(document.createTextNode(cssText));
+      }
+
+      // --- Declarative CSS rules (works like pasting CSS) ---
+      // applyStyles(".book.p-4 > div:nth-child(6) .pb-5", {
+      //   backgroundColor: "#f9f9f9"
+      // });
+
+      // --- One-off JS fix for first elements ---
+      const firstH2 = document.querySelector(
+        ".book.p-4 > div:nth-child(6) .pb-5 h2");
+      if (firstH2) {
+        firstH2.style.setProperty("display", "none", "important");
+      }
+
+      applyStyles("div.pb-5:first-child", {
+        paddingTop: "0"
+      });
+
+      function wrapContent(containerSelector, wrapperStyles,
+        skipFirstChild = false) {
+        document.querySelectorAll(containerSelector).forEach((container,
+          index) => {
+          // if (skipFirstChild && index === 0)
+          //   return; // skip the first container
+
+          const wrapper = document.createElement("div");
+          Object.assign(wrapper.style, wrapperStyles);
+
+          while (container.firstChild) {
+            wrapper.appendChild(container.firstChild);
+          }
+          container.appendChild(wrapper);
+        });
+      }
+
+      // ✅ Helper: create fullscreen modal for images
+      function createFullscreenModal(imgSrc) {
+        const modal = document.createElement("div");
+        Object.assign(modal.style, {
+          position: "fixed",
+          top: "0",
+          left: "0",
+          width: "100%",
+          height: "100%",
+          backgroundColor: "rgba(0,0,0,0.9)",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          cursor: "zoom-out",
+          zIndex: "9999"
+        });
+        const fullImg = document.createElement("img");
+        fullImg.src = imgSrc;
+        Object.assign(fullImg.style, {
+          maxWidth: "95%",
+          maxHeight: "95%"
+        });
+        modal.appendChild(fullImg);
+        document.body.appendChild(modal);
+        modal.addEventListener("click", () => modal.remove());
+      }
+
+      // ✅ Helper: add fullscreen icons to images
+      function addFullscreenIcons(containerSelector) {
+        document.querySelectorAll(containerSelector + " img").forEach(
+          img => {
+            const wrapper = document.createElement("div");
+            wrapper.style.position = "relative";
+            img.parentNode.insertBefore(wrapper, img);
+            wrapper.appendChild(img);
+
+            const icon = document.createElement("div");
+            icon.innerHTML = `
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" 
+       xmlns="http://www.w3.org/2000/svg">
+    <!-- Top-right corner -->
+    <path d="M10 2h4v4" stroke="white" stroke-width="2"/>
+    <!-- Bottom-left corner -->
+    <path d="M2 10v4h4" stroke="white" stroke-width="2"/>
+  </svg>
+`;
+            Object.assign(icon.style, {
+              position: "absolute",
+              bottom: "5px",
+              right: "5px",
+              backgroundColor: "rgba(0,0,0,0.5)",
+              color: "#fff",
+              padding: "2px 5px",
+              fontSize: "14px",
+              cursor: "pointer",
+              borderRadius: "3px",
+              zIndex: "10"
+            });
+            wrapper.appendChild(icon);
+
+            icon.addEventListener("click", e => {
+              e.stopPropagation();
+              createFullscreenModal(img.src);
+            });
+          });
+      }
+
+      function sanitizeSelectors(config) {
+        if (!config?.sanitizeSelectors) return;
+
+        const {
+          parent,
+          selectors
+        } = config.sanitizeSelectors;
+        if (!parent || !selectors) return;
+
+        const parentEls = document.querySelectorAll(parent);
+        parentEls.forEach(parentEl => {
+          selectors.forEach(sel => {
+            parentEl.querySelectorAll(sel).forEach(el => {
+              // Extract classes directly from selector string (e.g. ".row-fluid" → "row-fluid")
+              sel.split(".").slice(1).forEach(cls => el
+                .classList.remove(cls));
+            });
+          });
+        });
+      }
+
+      // ✅ Fully declarative page configs
+      const PAGE_CONFIGS = [{
+          urlIncludes: "mod/book/view.php",
+          h5pTabs: false,
+          sanitizeSelectors: {
+            parent: "#mod_book-chapter",
+            selectors: [
+              ".atto_bsgrid.container-fluid",
+              ".row-fluid",
+              ".col-md-8.span8"
+            ]
+          },
+          enableFullscreenImages: true,
+          rules: {
+            "#mod_book-chapter p, #mod_book-chapter li, #mod_book-chapter ol, #mod_book-chapter ul, #mod_book-chapter span": {
+              fontSize: "18px",
+              lineHeight: "1.5"
+            },
+            "iframe[src*='youtube.com']": {
+              width: ["100%", "important"],
+              height: ["auto", "important"],
+              aspectRatio: "16/9"
+            },
+            "img, iframe": {
+              display: "block",
+              marginLeft: "auto",
+              marginRight: "auto",
+              maxWidth: "100%"
+            },
+          },
+          wrapSelectors: [{
+            selector: "#mod_book-chapter .no-overflow",
+            styles: {
+              maxWidth: "700px",
+              margin: "0 auto"
+            },
+            skipFirstChild: false
+          }],
+          imageContainers: ["#mod_book-chapter"]
+        },
+        {
+          urlIncludes: "book/tool",
+          h5pTabs: false,
+          sanitizeSelectors: {
+            parent: ".pb-5",
+            selectors: [
+              ".atto_bsgrid.container-fluid",
+              ".row-fluid",
+              ".col-md-8.span8"
+            ]
+          },
+          enableFullscreenImages: true,
+          rules: {
+            ".book_chapter p, .book_chapter li, .book_chapter ol, .book_chapter ul, .book_chapter span": {
+              fontSize: "18px",
+              lineHeight: "1.5"
+            },
+            "iframe[src*='youtube.com']": {
+              width: ["100%", "important"],
+              height: ["auto", "important"],
+              aspectRatio: "16/9"
+            },
+            "img, iframe": {
+              display: "block",
+              marginLeft: "auto",
+              marginRight: "auto",
+              maxWidth: "100%"
+            },
+            "div.pb-5": {
+              paddingTop: "3rem",
+              margin: "-1.5rem",
+              paddingInline: "1.5rem"
+            },
+            ".book_chapter h2.text-center.pb-5": {
+              paddingTop: "0"
+            },
+            ".pb-5:nth-child(2n)": {
+              backgroundColor: "#fffad9"
+            }, // yellow
+            ".pb-5:nth-child(4n)": {
+              backgroundColor: "#e0f2fb"
+            }, // light blue
+            ".pb-5:nth-child(6n)": {
+              backgroundColor: "#f3f3f3"
+            }, // grey
+            ".pb-5:nth-child(8n)": {
+              backgroundColor: "#ddf7ed"
+            }, // light green
+            ".pb-5:nth-child(10n)": {
+              backgroundColor: "#e2e7f6"
+            }, // indigo
+            ".book.p-4 > div:nth-child(1)": {
+              display: ["none", "important"]
+            }, // print_button
+            ".book.p-4 > div:nth-child(2)": {
+              display: ["none", "important"]
+            }, // book_title
+            ".book.p-4 > div:nth-child(3)": {
+              display: ["none", "important"]
+            }, // book_info
+            ".book.p-4 > div:nth-child(4)": {
+              display: ["none", "important"]
+            }, // book_table
+            ".book.p-4 > div:nth-child(5)": {
+              display: ["none", "important"]
+            }, // Hide Table of Content
+            ".h5p-placeholder": {
+              backgroundColor: "#ffffff",
+              padding: "16px",
+              borderRadius: "8px",
+              marginBottom: "8px"
+            } // Adding padding for H5P Activities
+          },
+          wrapSelectors: [{
+            selector: ".book_chapter",
+            styles: {
+              maxWidth: "700px",
+              margin: "0 auto",
+            },
+            skipFirstChild: true // <-- skip the first .book_chapter
+          }],
+          imageContainers: [".book_chapter"],
+          feedback: {
+            enable: true,
+            url: "" // replace with actual URL
+          }
+        }
+      ];
+
+      // ✅ Apply configs dynamically
+      PAGE_CONFIGS.forEach(config => {
+        if (window.location.pathname.includes(config.urlIncludes)) {
+
+          // 1. Sanitize first
+          sanitizeSelectors(config);
+
+          // Apply global styles/rules
+          Object.entries(config.rules).forEach(([selector, styles]) =>
+            applyStyles(selector, styles));
+
+          // Apply wrappers
+          config.wrapSelectors.forEach(wrap =>
+            wrapContent(wrap.selector, wrap.styles, wrap
+              .skipFirstChild)
+          );
+
+          // Add fullscreen icons if enabled
+          if (config.enableFullscreenImages && config.imageContainers) {
+            config.imageContainers.forEach(container =>
+              addFullscreenIcons(container));
+          }
+
+          if (config.h5pTabs) buildH5PTabs();
+
+          if (config.feedback) buildFeedbackButton(config);
+        }
+      });
+
+    });
+  </script>
+</div>
