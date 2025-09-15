@@ -2,6 +2,214 @@
   <script>
     document.addEventListener("DOMContentLoaded", function() {
 
+      function buildTTSButton() {
+        if (document.getElementById("tts-controls")) return;
+
+        const container = document.createElement("div");
+        container.id = "tts-controls";
+        Object.assign(container.style, {
+          position: "fixed",
+          bottom: "10px",
+          left: "10px",
+          display: "flex",
+          gap: "8px",
+          zIndex: "99999"
+        });
+
+        const buttons = [{
+            id: "tts-prev",
+            svg: `<svg width="24" height="24" viewBox="0 0 24 24"><path d="M15 18L9 12L15 6" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`
+          },
+          {
+            id: "tts-play",
+            svgPlay: `<svg width="24" height="24" viewBox="0 0 24 24"><path d="M8 5V19L19 12L8 5Z" fill="white"/></svg>`,
+            svgPause: `<svg width="24" height="24" viewBox="0 0 24 24"><rect x="6" y="5" width="4" height="14" fill="white"/><rect x="14" y="5" width="4" height="14" fill="white"/></svg>`
+          },
+          {
+            id: "tts-next",
+            svg: `<svg width="24" height="24" viewBox="0 0 24 24"><path d="M9 6L15 12L9 18" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`
+          }
+        ];
+
+        const btnEls = {};
+        buttons.forEach(info => {
+          const btn = document.createElement("button");
+          btn.id = info.id;
+          Object.assign(btn.style, {
+            width: "40px",
+            height: "40px",
+            borderRadius: "50%",
+            border: "none",
+            backgroundColor: "#222",
+            cursor: "pointer",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            boxShadow: "0 2px 6px rgba(0,0,0,0.3)"
+          });
+          if (info.svg) btn.innerHTML = info.svg;
+          else if (info.svgPlay) btn.innerHTML = info.svgPlay;
+          container.appendChild(btn);
+          btnEls[info.id] = btn;
+          if (info.svgPlay) {
+            btnEls.playSvg = info.svgPlay;
+            btnEls.pauseSvg = info.svgPause;
+          }
+        });
+        document.body.appendChild(container);
+
+        const bookContent = document.querySelector(
+          ".book.p-4 > div:last-child");
+        if (!bookContent) return;
+
+        let sentenceSpans = [];
+        let currentIndex = 0;
+        let isSpeaking = false;
+        let isPaused = false;
+
+        const sentenceRegex = /[^.!?\n]+[.!?\n]*/g;
+
+        const wrapSentences = () => {
+          let index = 0;
+          const walk = node => {
+            if (node.nodeType === Node.TEXT_NODE && node.textContent
+              .trim()) {
+              const chunks = node.textContent.match(sentenceRegex) || [
+                node.textContent
+              ];
+              const frag = document.createDocumentFragment();
+              const parentStyles = window.getComputedStyle(node
+                .parentNode);
+              const styleProps = {
+                fontSize: parentStyles.fontSize,
+                fontWeight: parentStyles.fontWeight,
+                fontFamily: parentStyles.fontFamily,
+                lineHeight: parentStyles.lineHeight
+              };
+              chunks.forEach(chunk => {
+                const span = document.createElement("span");
+                span.dataset.sentenceIndex = index++;
+                span.textContent = chunk.trim();
+                Object.assign(span.style, styleProps);
+                frag.appendChild(span);
+                frag.appendChild(document.createTextNode(" "));
+              });
+              node.parentNode.replaceChild(frag, node);
+            } else if (node.nodeType === Node.ELEMENT_NODE && node
+              .tagName !== "SCRIPT") {
+              Array.from(node.childNodes).forEach(walk);
+            }
+          };
+          walk(bookContent);
+          sentenceSpans = [...bookContent.querySelectorAll(
+            "span[data-sentence-index]")];
+        };
+
+        const highlightSentence = index => {
+          sentenceSpans.forEach((span, i) => {
+            span.style.backgroundColor = i === index ? "#d4edda" :
+              "transparent";
+            span.offsetHeight; // force reflow for Safari highlight
+          });
+        };
+
+        const getFirstVisibleIndex = () => {
+          const viewportTop = window.scrollY;
+          const viewportBottom = viewportTop + window.innerHeight;
+          for (let i = 0; i < sentenceSpans.length; i++) {
+            const rect = sentenceSpans[i].getBoundingClientRect();
+            const absTop = rect.top + window.scrollY;
+            if (absTop >= viewportTop && absTop <= viewportBottom)
+              return i;
+          }
+          return 0;
+        };
+
+        const selectVoice = () => {
+          const voices = speechSynthesis.getVoices();
+          const preferredNames = ["Google UK English Female", "Samantha",
+            "Serena", "Karen",
+            "Microsoft Zira Desktop - English (United States)"
+          ];
+          for (const name of preferredNames) {
+            const v = voices.find(voice => voice.name === name);
+            if (v) return v;
+          }
+          return voices.find(v => v.lang.startsWith("en") && v.name
+            .toLowerCase().includes("female")) || voices[0];
+        };
+
+        const speakNext = () => {
+          if (currentIndex >= sentenceSpans.length) {
+            isSpeaking = false;
+            btnEls["tts-play"].innerHTML = btnEls.playSvg;
+            return;
+          }
+          const text = sentenceSpans[currentIndex].textContent;
+          const utterance = new SpeechSynthesisUtterance(text);
+          utterance.voice = selectVoice();
+          utterance.rate = 1;
+          utterance.pitch = 1;
+          utterance.onstart = () => {
+            highlightSentence(currentIndex);
+            const span = sentenceSpans[currentIndex];
+            if (span) span.scrollIntoView({
+              behavior: "smooth",
+              block: "center"
+            });
+          };
+          utterance.onend = () => {
+            if (!isPaused) {
+              currentIndex++;
+              speakNext();
+            }
+          };
+          speechSynthesis.speak(utterance);
+        };
+
+        if (!sentenceSpans.length) wrapSentences();
+
+        // --- Button Events ---
+        btnEls["tts-play"].addEventListener("click", () => {
+          if (!isSpeaking) {
+            currentIndex = 0;
+            isSpeaking = true;
+            isPaused = false;
+            btnEls["tts-play"].innerHTML = btnEls.pauseSvg;
+            speakNext();
+          } else if (isPaused) {
+            speechSynthesis.resume();
+            isPaused = false;
+            btnEls["tts-play"].innerHTML = btnEls.pauseSvg;
+          } else {
+            speechSynthesis.pause();
+            isPaused = true;
+            btnEls["tts-play"].innerHTML = btnEls.playSvg;
+          }
+        });
+
+        btnEls["tts-prev"].addEventListener("click", () => {
+          if (!sentenceSpans.length) return;
+          speechSynthesis.cancel();
+          currentIndex = Math.max(currentIndex - 1, 0);
+          isPaused = false;
+          isSpeaking = true;
+          btnEls["tts-play"].innerHTML = btnEls.pauseSvg;
+          speakNext();
+        });
+
+        btnEls["tts-next"].addEventListener("click", () => {
+          if (!sentenceSpans.length) return;
+          speechSynthesis.cancel();
+          currentIndex = Math.min(currentIndex + 1, sentenceSpans
+            .length - 1);
+          isPaused = false;
+          isSpeaking = true;
+          btnEls["tts-play"].innerHTML = btnEls.pauseSvg;
+          speakNext();
+        });
+      }
+
       function buildFeedbackButton(config) {
         if (!config.feedback || !config.feedback.enable) return;
         const url = config.feedback.url;
@@ -394,6 +602,7 @@
         },
         {
           urlIncludes: "book/tool",
+          tts: true,
           h5pTabs: false,
           sanitizeSelectors: {
             parent: ".pb-5",
@@ -507,6 +716,9 @@
           if (config.h5pTabs) buildH5PTabs();
 
           if (config.feedback) buildFeedbackButton(config);
+
+          if (config.tts) buildTTSButton();
+
         }
       });
 
