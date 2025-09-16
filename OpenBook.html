@@ -1,6 +1,83 @@
 <div>
   <script>
-    document.addEventListener("DOMContentLoaded", function() {
+    document.addEventListener("DOMContentLoaded", function () {
+
+      function buildNavBar(config) {
+        if (document.getElementById("custom-navbar")) return;
+
+        const tocContainer = document.querySelector(
+          ".book.p-4 > div:nth-child(5)");
+        if (!tocContainer) return;
+
+        const ul = tocContainer.querySelector("ul");
+        if (!ul) return;
+
+        // --- Build navbar wrapper ---
+        const navWrapper = document.createElement("div");
+        navWrapper.id = "custom-navbar";
+        Object.assign(navWrapper.style, {
+          position: "fixed",
+          top: "0",
+          left: "0",
+          right: "0",
+          padding: "8px",
+          backgroundColor: "#1a1a1a",
+          zIndex: "10000",
+          display: "flex",
+          gap: "8px",
+          overflowX: "auto",
+          whiteSpace: "nowrap",
+          boxShadow: "0 2px 6px rgba(0,0,0,0.3)"
+        });
+
+        // --- Inner container to align with .book.p-4 ---
+        const inner = document.createElement("div");
+        Object.assign(inner.style, {
+          margin: "0 auto",
+          display: "flex",
+          gap: "8px",
+          flex: "1"
+        });
+
+        navWrapper.appendChild(inner);
+
+        // --- Build nav items from li ---
+        ul.querySelectorAll("li a").forEach(link => {
+          const btn = document.createElement("button");
+          btn.textContent = link.textContent;
+          Object.assign(btn.style, {
+            padding: "4px 8px", // optional, just a bit of spacing
+            border: "none",
+            backgroundColor: "transparent", // remove dark box
+            color: "white", // text remains visible
+            cursor: "pointer",
+            whiteSpace: "nowrap",
+            fontSize: "14px"
+          });
+
+          btn.addEventListener("click", e => {
+            e.preventDefault();
+            const target = document.querySelector(link.getAttribute(
+              "href"));
+            if (target) {
+              target.scrollIntoView({
+                behavior: "smooth",
+                block: "start"
+              });
+            }
+          });
+
+          inner.appendChild(btn);
+        });
+
+        // --- Hide original list + heading ---
+        ul.style.display = "none";
+        const heading = tocContainer.querySelector("h2");
+        if (heading) heading.style.display = "none";
+
+        // --- Place navbar at top of body ---
+        document.body.prepend(navWrapper);
+      }
 
       function buildTTSButton() {
         if (document.getElementById("tts-controls")) return;
@@ -17,18 +94,18 @@
         });
 
         const buttons = [{
-            id: "tts-prev",
-            svg: `<svg width="24" height="24" viewBox="0 0 24 24"><path d="M15 18L9 12L15 6" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`
-          },
-          {
-            id: "tts-play",
-            svgPlay: `<svg width="24" height="24" viewBox="0 0 24 24"><path d="M8 5V19L19 12L8 5Z" fill="white"/></svg>`,
-            svgPause: `<svg width="24" height="24" viewBox="0 0 24 24"><rect x="6" y="5" width="4" height="14" fill="white"/><rect x="14" y="5" width="4" height="14" fill="white"/></svg>`
-          },
-          {
-            id: "tts-next",
-            svg: `<svg width="24" height="24" viewBox="0 0 24 24"><path d="M9 6L15 12L9 18" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`
-          }
+          id: "tts-prev",
+          svg: `<svg width="24" height="24" viewBox="0 0 24 24"><path d="M15 18L9 12L15 6" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`
+        },
+        {
+          id: "tts-play",
+          svgPlay: `<svg width="24" height="24" viewBox="0 0 24 24"><path d="M8 5V19L19 12L8 5Z" fill="white"/></svg>`,
+          svgPause: `<svg width="24" height="24" viewBox="0 0 24 24"><rect x="6" y="5" width="4" height="14" fill="white"/><rect x="14" y="5" width="4" height="14" fill="white"/></svg>`
+        },
+        {
+          id: "tts-next",
+          svg: `<svg width="24" height="24" viewBox="0 0 24 24"><path d="M9 6L15 12L9 18" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`
+        }
         ];
 
         const btnEls = {};
@@ -562,132 +639,139 @@
 
       // ✅ Fully declarative page configs
       const PAGE_CONFIGS = [{
-          urlIncludes: "mod/book/view.php",
-          h5pTabs: false,
-          sanitizeSelectors: {
-            parent: "#mod_book-chapter",
-            selectors: [
-              ".atto_bsgrid.container-fluid",
-              ".row-fluid",
-              ".col-md-8.span8"
-            ]
-          },
-          enableFullscreenImages: true,
-          rules: {
-            "#mod_book-chapter p, #mod_book-chapter li, #mod_book-chapter ol, #mod_book-chapter ul, #mod_book-chapter span": {
-              fontSize: "18px",
-              lineHeight: "1.5"
-            },
-            "iframe[src*='youtube.com']": {
-              width: ["100%", "important"],
-              height: ["auto", "important"],
-              aspectRatio: "16/9"
-            },
-            "img, iframe": {
-              display: "block",
-              marginLeft: "auto",
-              marginRight: "auto",
-              maxWidth: "100%"
-            },
-          },
-          wrapSelectors: [{
-            selector: "#mod_book-chapter .no-overflow",
-            styles: {
-              maxWidth: "700px",
-              margin: "0 auto"
-            },
-            skipFirstChild: false
-          }],
-          imageContainers: ["#mod_book-chapter"]
+        urlIncludes: "mod/book/view.php",
+        h5pTabs: false,
+        sanitizeSelectors: {
+          parent: "#mod_book-chapter",
+          selectors: [
+            ".atto_bsgrid.container-fluid",
+            ".row-fluid",
+            ".col-md-8.span8"
+          ]
         },
-        {
-          urlIncludes: "book/tool",
-          tts: true,
-          h5pTabs: false,
-          sanitizeSelectors: {
-            parent: ".pb-5",
-            selectors: [
-              ".atto_bsgrid.container-fluid",
-              ".row-fluid",
-              ".col-md-8.span8"
-            ]
+        enableFullscreenImages: true,
+        rules: {
+          "#mod_book-chapter p, #mod_book-chapter li, #mod_book-chapter ol, #mod_book-chapter ul, #mod_book-chapter span": {
+            fontSize: "18px",
+            lineHeight: "1.5"
           },
-          enableFullscreenImages: true,
-          rules: {
-            ".book_chapter p, .book_chapter li, .book_chapter ol, .book_chapter ul, .book_chapter span": {
-              fontSize: "18px",
-              lineHeight: "1.5"
-            },
-            "iframe[src*='youtube.com']": {
-              width: ["100%", "important"],
-              height: ["auto", "important"],
-              aspectRatio: "16/9"
-            },
-            "img, iframe": {
-              display: "block",
-              marginLeft: "auto",
-              marginRight: "auto",
-              maxWidth: "100%"
-            },
-            "div.pb-5": {
-              paddingTop: "3rem",
-              margin: "-1.5rem",
-              paddingInline: "1.5rem"
-            },
-            ".book_chapter h2.text-center.pb-5": {
-              paddingTop: "0"
-            },
-            ".pb-5:nth-child(2n)": {
-              backgroundColor: "#fffad9"
-            }, // yellow
-            ".pb-5:nth-child(4n)": {
-              backgroundColor: "#e0f2fb"
-            }, // light blue
-            ".pb-5:nth-child(6n)": {
-              backgroundColor: "#f3f3f3"
-            }, // grey
-            ".pb-5:nth-child(8n)": {
-              backgroundColor: "#ddf7ed"
-            }, // light green
-            ".pb-5:nth-child(10n)": {
-              backgroundColor: "#e2e7f6"
-            }, // indigo
-            ".book.p-4 > div:nth-child(1)": {
-              display: ["none", "important"]
-            }, // print_button
-            ".book.p-4 > div:nth-child(2)": {
-              display: ["none", "important"]
-            }, // book_title
-            ".book.p-4 > div:nth-child(3)": {
-              display: ["none", "important"]
-            }, // book_info
-            ".book.p-4 > div:nth-child(4)": {
-              display: ["none", "important"]
-            }, // book_table
-            ".book.p-4 > div:nth-child(5)": {
-              display: ["none", "important"]
-            }, // Hide Table of Content
-            ".h5p-placeholder": {
-              backgroundColor: "#ffffff",
-              padding: "16px",
-              borderRadius: "8px",
-              marginBottom: "8px"
-            } // Adding padding for H5P Activities
+          "iframe[src*='youtube.com']": {
+            width: ["100%", "important"],
+            height: ["auto", "important"],
+            aspectRatio: "16/9"
           },
-          wrapSelectors: [{
-            selector: ".book_chapter",
-            styles: {
-              maxWidth: "700px",
-              margin: "0 auto",
-            },
-            skipFirstChild: true // <-- skip the first .book_chapter
-          }],
-          imageContainers: [".book_chapter"],
-          feedback: {
-            enable: true,
-            url: "" // replace with actual URL
-          }
+          "img, iframe": {
+            display: "block",
+            marginLeft: "auto",
+            marginRight: "auto",
+            maxWidth: "100%"
+          },
+        },
+        wrapSelectors: [{
+          selector: "#mod_book-chapter .no-overflow",
+          styles: {
+            maxWidth: "700px",
+            margin: "0 auto"
+          },
+          skipFirstChild: false
+        }],
+        imageContainers: ["#mod_book-chapter"]
+      },
+      {
+        urlIncludes: "book/tool",
+        navBar: true,
+        tts: true,
+        h5pTabs: false,
+        sanitizeSelectors: {
+          parent: ".pb-5",
+          selectors: [
+            ".atto_bsgrid.container-fluid",
+            ".row-fluid",
+            ".col-md-8.span8"
+          ]
+        },
+        enableFullscreenImages: true,
+        rules: {
+          "html": {
+            scrollPaddingTop: "64px"
+          },
+          ".book_chapter p, .book_chapter li, .book_chapter ol, .book_chapter ul, .book_chapter span": {
+            fontSize: "18px",
+            lineHeight: "1.5"
+          },
+          "iframe[src*='youtube.com']": {
+            width: ["100%", "important"],
+            height: ["auto", "important"],
+            aspectRatio: "16/9"
+          },
+          "img, iframe": {
+            display: "block",
+            marginLeft: "auto",
+            marginRight: "auto",
+            maxWidth: "100%"
+          },
+          "div.pb-5": {
+            paddingTop: "3rem",
+            margin: "-1.5rem",
+            paddingInline: "1.5rem"
+          },
+          "div.py-5": {
+            paddingTop: ["0", "important"]
+          },
+          ".book_chapter h2.text-center.pb-5": {
+            paddingTop: "0"
+          },
+          ".pb-5:nth-child(2n)": {
+            backgroundColor: "#fffad9"
+          }, // yellow
+          ".pb-5:nth-child(4n)": {
+            backgroundColor: "#e0f2fb"
+          }, // light blue
+          ".pb-5:nth-child(6n)": {
+            backgroundColor: "#f3f3f3"
+          }, // grey
+          ".pb-5:nth-child(8n)": {
+            backgroundColor: "#ddf7ed"
+          }, // light green
+          ".pb-5:nth-child(10n)": {
+            backgroundColor: "#e2e7f6"
+          }, // indigo
+          ".book.p-4 > div:nth-child(1)": {
+            display: ["none", "important"]
+          }, // print_button
+          ".book.p-4 > div:nth-child(2)": {
+            display: ["none", "important"]
+          }, // book_title
+          ".book.p-4 > div:nth-child(3)": {
+            display: ["none", "important"]
+          }, // book_info
+          ".book.p-4 > div:nth-child(4)": {
+            display: ["none", "important"]
+          }, // book_table
+          // ".book.p-4 > div:nth-child(5)": {
+          //   display: ["none", "important"]
+          // }, // Hide Table of Content
+          ".h5p-placeholder": {
+            backgroundColor: "#ffffff",
+            padding: "16px",
+            borderRadius: "8px",
+            marginBottom: "8px"
+          } // Adding padding for H5P Activities
+        },
+        wrapSelectors: [{
+          selector: ".book_chapter",
+          styles: {
+            maxWidth: "700px",
+            margin: "0 auto",
+          },
+          skipFirstChild: true // <-- skip the first .book_chapter
+        }],
+        imageContainers: [".book_chapter"],
+        feedback: {
+          enable: true,
+          url: "" // replace with actual URL
         }
+      }
       ];
 
       // ✅ Apply configs dynamically
@@ -718,6 +802,8 @@
           if (config.feedback) buildFeedbackButton(config);
 
           if (config.tts) buildTTSButton();
+
+          if (config.navBar) buildNavBar(config);
 
         }
       });
