@@ -8,11 +8,27 @@
         const tocContainer = document.querySelector(
           ".book.p-4 > div:nth-child(5)");
         if (!tocContainer) return;
-
         const ul = tocContainer.querySelector("ul");
         if (!ul) return;
 
-        // --- Build navbar wrapper ---
+        // Inject minimal CSS (once)
+        if (!document.getElementById("custom-navbar-style")) {
+          const style = document.createElement("style");
+          style.id = "custom-navbar-style";
+          style.textContent = `
+      #custom-navbar { background:#1a1a1a; }
+      #custom-navbar .nav-btn {
+        padding: 4px 8px; border: 0; background: transparent;
+        color: #A9A9A9; font-weight: 700; font-size: 14px; cursor: pointer;
+        transition: color .15s ease;
+      }
+      #custom-navbar .nav-btn:hover { color: #fff; }
+      #custom-navbar .nav-btn.active { color: #fff; }
+    `;
+          document.head.appendChild(style);
+        }
+
+        // Wrapper
         const navWrapper = document.createElement("div");
         navWrapper.id = "custom-navbar";
         Object.assign(navWrapper.style, {
@@ -21,62 +37,137 @@
           left: "0",
           right: "0",
           padding: "8px",
-          backgroundColor: "#1a1a1a",
           zIndex: "10000",
           display: "flex",
+          flexWrap: "wrap",
           gap: "8px",
-          overflowX: "auto",
-          whiteSpace: "nowrap",
+          overflow: "visible",
           boxShadow: "0 2px 6px rgba(0,0,0,0.3)"
         });
 
-        // --- Inner container to align with .book.p-4 ---
+        // Inner (center + wrap)
         const inner = document.createElement("div");
         Object.assign(inner.style, {
           margin: "0 auto",
           display: "flex",
+          flexWrap: "wrap",
           gap: "8px",
-          flex: "1"
+          flex: "1",
+          alignItems: "center",
+          justifyContent: "center"
         });
-
         navWrapper.appendChild(inner);
 
-        // --- Build nav items from li ---
+        const navItems = [];
         ul.querySelectorAll("li a").forEach(link => {
           const btn = document.createElement("button");
-          btn.textContent = link.textContent;
-          Object.assign(btn.style, {
-            padding: "4px 8px", // optional, just a bit of spacing
-            border: "none",
-            backgroundColor: "transparent", // remove dark box
-            color: "white", // text remains visible
-            cursor: "pointer",
-            whiteSpace: "nowrap",
-            fontSize: "14px"
-          });
+          btn.className = "nav-btn";
+          btn.textContent = link.textContent.trim();
 
           btn.addEventListener("click", e => {
             e.preventDefault();
-            const target = document.querySelector(link.getAttribute(
-              "href"));
+            const href = link.getAttribute("href");
+            const target = href ? document.querySelector(href) :
+              null;
             if (target) {
-              target.scrollIntoView({
-                behavior: "smooth",
-                block: "start"
+              // immediate visual feedback
+              setActiveByHref(href);
+              const offset = navWrapper.offsetHeight || 0;
+              const y = target.getBoundingClientRect().top + window
+                .scrollY - offset - 4;
+              window.scrollTo({
+                top: y,
+                behavior: "smooth"
               });
+              // sync hash without jumping
+              history.replaceState(null, "", href);
             }
           });
 
           inner.appendChild(btn);
+          navItems.push({
+            btn,
+            link
+          });
         });
 
-        // --- Hide original list + heading ---
+        // Hide original TOC
         ul.style.display = "none";
         const heading = tocContainer.querySelector("h2");
         if (heading) heading.style.display = "none";
 
-        // --- Place navbar at top of body ---
+        // Mount
         document.body.prepend(navWrapper);
+
+        // Keep content clear of fixed navbar
+        const applyTopOffset = () => {
+          const h = navWrapper.offsetHeight || 0;
+          document.body.style.paddingTop = h + "px";
+          document.documentElement.style.scrollPaddingTop = h + "px";
+        };
+        applyTopOffset();
+        const ro = new ResizeObserver(applyTopOffset);
+        ro.observe(navWrapper);
+        window.addEventListener("resize", applyTopOffset);
+
+        // Targets (in document order)
+        const targets = navItems
+          .map(({
+            link
+          }) => link.getAttribute("href"))
+          .filter(Boolean)
+          .map(href => ({
+            href,
+            el: document.querySelector(href)
+          }))
+          .filter(x => !!x.el);
+
+        // Helper: set active by href
+        function setActiveByHref(activeHref) {
+          navItems.forEach(({
+            btn,
+            link
+          }) => {
+            const match = link.getAttribute("href") === activeHref;
+            btn.classList.toggle("active", !!match);
+          });
+        }
+
+        // Robust scroll spy:
+        // Active = last section whose top is above the navbar (with small buffer)
+        let ticking = false;
+        const onScroll = () => {
+          if (ticking) return;
+          ticking = true;
+          requestAnimationFrame(() => {
+            const offset = (navWrapper.offsetHeight || 0) + 6;
+            // Find the last section whose top <= offset from viewport top
+            let activeHref = targets[0]?.href || "";
+            for (const {
+              href,
+              el
+            }
+              of targets) {
+              const top = el.getBoundingClientRect().top;
+              if (top - offset <= 0) activeHref = href;
+              else
+                break; // targets are in order; stop at first below offset
+            }
+            setActiveByHref(activeHref);
+            ticking = false;
+          });
+        };
+
+        // Initial & listeners
+        onScroll();
+        document.addEventListener("scroll", onScroll, {
+          passive: true
+        });
+        window.addEventListener("resize", onScroll);
+        window.addEventListener("hashchange", () => {
+          const hash = window.location.hash || "";
+          if (hash) setActiveByHref(hash);
+        });
       }
 
       function buildTTSButton() {
