@@ -1,9 +1,9 @@
 # Getting Started with OpenBook
 
-Using OpenBook is as easy as 1, 2, 3
+How to use OpenBook in 3 steps
 
-Step 1: Copy the OpenBook script from [here](https://github.com/aylwinscw/OpenBook/blob/main/OpenBook.html).
+Step 1: Head to [here](https://github.com/aylwinscw/OpenBook/blob/main/OpenBook.html) and copy the script.
 
-Step 2: Go to Moodle Book settings and paste the code.
+Step 2: Pick one Moodle book you would like to use. Click on **Setting** > **Select HTML </>** then paste the code. Remember to click **Save and Display** after you have pasted the code.
 
-Step 3: Save and launch.
+Step 3: Click **More** > **Print book** to view.
