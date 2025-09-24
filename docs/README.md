@@ -8,4 +8,4 @@ Step 2: Pick one Moodle book you would like to use. Click on **Setting** > **Sel
 
 Step 3: Click **More** > **Print book** to view.
 
-![GIF Instruction](docs/How-to-use-OpenBook.gif)
+![GIF Instruction](How-to-use-OpenBook.gif)
