@@ -7,3 +7,5 @@ Step 1: Head to [here](https://github.com/aylwinscw/OpenBook/blob/main/OpenBook.
 Step 2: Pick one Moodle book you would like to use. Click on **Setting** > **Select HTML </>** then paste the code. Remember to click **Save and Display** after you have pasted the code.
 
 Step 3: Click **More** > **Print book** to view.
+
+![GIF Instruction](docs/How-to-use-OpenBook.gif)
