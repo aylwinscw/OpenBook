@@ -8,3 +8,5 @@
 
 [Source code](https://github.com/aylwinscw/OpenBook)
 [Getting Started](#getting-started-with-openbook)
+
+![color](#FAF4ED)
