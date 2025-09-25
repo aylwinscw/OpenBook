@@ -1,4 +1,4 @@
-# Getting Started with OpenBook
+## Getting Started with OpenBook
 
 How to use OpenBook in 3 steps
 
@@ -8,6 +8,4 @@ Step 2: Pick one Moodle book you would like to use. Click on **Setting** > **Sel
 
 Step 3: Click **More** > **Print book** to view.
 
-<div style="text-align: center;">
-<img src="https://raw.githubusercontent.com/aylwinscw/OpenBook/main/docs/How-to-use-OpenBook.gif" alt="How to use OpenBook" width="700">
-</div>
+<img src="https://raw.githubusercontent.com/aylwinscw/OpenBook/main/docs/How-to-use-OpenBook.gif" alt="How to use OpenBook" width="800">
