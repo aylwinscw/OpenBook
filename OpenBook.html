@@ -7,6 +7,7 @@
         urlIncludes: "book/tool",
         navBar: true,
         tts: true,
+        highlighter: true,
         h5pTabs: false,
         sanitizeSelectors: {
           parent: ".pb-5",
@@ -137,6 +138,203 @@
         }],
         imageContainers: ["#mod_book-chapter"]
       }];
+
+
+
+  /* =========================
+   Text Highlighter (new)
+   ========================= */
+      function buildTextHighlighter(options = {}) {
+        if (document.getElementById("hl-palette")) return;
+
+        const COLORS = options.colors || ["#fff176", "#a5d6a7", "#90caf9",
+          "#f8bbd0", "#ffe082", "#b39ddb", "#ffccbc", "#c5e1a5"
+        ];
+        const PALETTE_OFFSET = 8;
+
+        // Styles
+        const style = document.createElement("style");
+        // replace the #hl-palette rule with:
+        style.textContent = `
+    #hl-palette {
+      position: absolute; inset: auto auto 0 0; transform: translate(-9999px,-9999px);
+      display: flex; gap: 6px; padding: 6px; background: #1e1e1e; border-radius: 10px;
+      box-shadow: 0 6px 20px rgba(0,0,0,.35); z-index: 30000; align-items: center;
+    }
+    #hl-palette .hl-color {
+      width: 20px; height: 20px; border-radius: 50%; border: 1px solid rgba(0,0,0,.25);
+      cursor: pointer;
+    }
+    #hl-palette .hl-erase {
+      width: 24px; height: 24px; border: 0; border-radius: 6px; cursor: pointer;
+      background: #444; color: #fff; font-weight: 700;
+    }
+    /* highlight spans */
+    [data-hl] { padding: 0 .1em; border-radius: .2em; }
+  `;
+
+
+
+
+        document.head.appendChild(style);
+
+        // Palette UI
+        const palette = document.createElement("div");
+        palette.id = "hl-palette";
+        COLORS.forEach(c => {
+          const b = document.createElement("button");
+          b.className = "hl-color";
+          b.title = `Highlight ${c}`;
+          b.style.background = c;
+          b.addEventListener("mousedown", e => {
+            e.preventDefault();
+            applyHighlight(c);
+            hidePalette();
+          });
+          palette.appendChild(b);
+        });
+        const erase = document.createElement("button");
+        erase.className = "hl-erase";
+        erase.title = "Remove highlight";
+        erase.textContent = "✕";
+        erase.addEventListener("mousedown", e => {
+          e.preventDefault();
+          removeHighlight();
+          hidePalette();
+        });
+        palette.appendChild(erase);
+        document.body.appendChild(palette);
+
+        let lastRange = null;
+
+        // Show palette near selection
+
+        document.addEventListener("mouseup", () => {
+          setTimeout(() => { // allow selection to settle
+            const sel = window.getSelection();
+            if (!sel || sel.isCollapsed) {
+              hidePalette();
+              return;
+            }
+            const range = sel.getRangeAt(0);
+            // ignore selections inside UI
+            if (palette.contains(range.commonAncestorContainer)) {
+              hidePalette();
+              return;
+            }
+            lastRange = range.cloneRange();
+            const rect = range.getBoundingClientRect();
+            if (!rect || (rect.width === 0 && rect.height === 0)) {
+              hidePalette();
+              return;
+            }
+            const top = window.scrollY + rect.top - window
+              .innerHeight - PALETTE_OFFSET;
+            const left = window.scrollX + rect.left;
+            palette.style.transform =
+              `translate(${Math.max(8,left)}px, ${Math.max(8,top)}px)`;
+          }, 0);
+        });
+
+
+        // Hide on click elsewhere / Esc
+        document.addEventListener("mousedown", e => {
+          if (!palette.contains(e.target)) {
+            const sel = window.getSelection();
+            if (!sel || sel.isCollapsed) hidePalette();
+          }
+        });
+        document.addEventListener("keydown", e => {
+          if (e.key === "Escape") {
+            hidePalette();
+          }
+        });
+
+        function hidePalette() {
+          palette.style.transform = "translate(-9999px,-9999px)";
+        }
+
+        function applyHighlight(color) {
+          const sel = window.getSelection();
+          let range = (sel && !sel.isCollapsed) ? sel.getRangeAt(0)
+            .cloneRange() : lastRange;
+          if (!range || range.collapsed) return;
+
+          // Extract contents and wrap in a span
+          const frag = range.extractContents();
+          const wrapper = document.createElement("span");
+          wrapper.setAttribute("data-hl", color);
+          wrapper.style.backgroundColor = color;
+
+          // Ensure we don't double-nest: unwrap any existing [data-hl] in fragment
+          wrapper.appendChild(unwrapHighlights(frag));
+          range.insertNode(wrapper);
+
+          // Merge adjacent highlights of same color
+          mergeAdjacentHighlights(wrapper);
+        }
+
+        function removeHighlight() {
+          const sel = window.getSelection();
+          if (!sel || sel.isCollapsed) return;
+          const range = sel.getRangeAt(0);
+          // Find any [data-hl] intersecting the range and unwrap
+          const container = range.commonAncestorContainer.nodeType === 1 ?
+            range.commonAncestorContainer :
+            range.commonAncestorContainer.parentNode;
+          container.querySelectorAll("[data-hl]").forEach(sp => {
+            if (rangeIntersectsNode(range, sp)) unwrapNode(sp);
+          });
+        }
+
+        // Utils
+        function unwrapHighlights(fragment) {
+          // Replace nested [data-hl] with their children to avoid nesting
+          const tmp = document.createElement("div");
+          tmp.appendChild(fragment);
+          tmp.querySelectorAll("[data-hl]").forEach(unwrapNode);
+          const frag = document.createDocumentFragment();
+          while (tmp.firstChild) frag.appendChild(tmp.firstChild);
+          return frag;
+        }
+
+        function unwrapNode(node) {
+          while (node.firstChild) node.parentNode.insertBefore(node
+            .firstChild, node);
+          node.remove();
+        }
+
+        function mergeAdjacentHighlights(node) {
+          if (!(node && node.matches && node.matches("[data-hl]"))) return;
+          const color = node.getAttribute("data-hl");
+          const prev = node.previousSibling;
+          const next = node.nextSibling;
+
+          if (prev && prev.nodeType === 1 && prev.matches("[data-hl]") &&
+            prev.getAttribute("data-hl") === color) {
+            // merge prev -> node
+            while (node.firstChild) prev.appendChild(node.firstChild);
+            node.remove();
+            node = prev;
+          }
+          if (next && next.nodeType === 1 && next.matches("[data-hl]") &&
+            next.getAttribute("data-hl") === color) {
+            while (next.firstChild) node.appendChild(next.firstChild);
+            next.remove();
+          }
+        }
+
+        function rangeIntersectsNode(range, node) {
+          const r = document.createRange();
+          r.selectNodeContents(node);
+          return !(range.compareBoundaryPoints(Range.END_TO_START, r) <=
+            0 ||
+            range.compareBoundaryPoints(Range.START_TO_END, r) >= 0);
+        }
+      }
+
+
+
 
       function buildNavBar(config) {
         if (document.getElementById("custom-navbar")) return;
@@ -894,6 +1092,8 @@
           if (config.tts) buildTTSButton();
 
           if (config.navBar) buildNavBar(config);
+
+          if(config.highlighter)buildTextHighlighter();
 
         }
       });
