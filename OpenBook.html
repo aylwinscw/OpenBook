@@ -5,6 +5,7 @@
       // Declarative page configs (For Ed Devs to edit, note)
       const PAGE_CONFIGS = [{
         urlIncludes: "book/tool",
+        noteTool: true,
         navBar: true,
         tts: true,
         h5pTabs: false,
@@ -137,6 +138,222 @@
         }],
         imageContainers: ["#mod_book-chapter"]
       }];
+
+
+
+       /* =========================
+        Note 
+        ========================= */
+
+      function buildNoteTool() {
+        if (document.getElementById("note-plus-btn")) return;
+
+        const style = document.createElement("style");
+        style.textContent = `
+    .note-plus-container {
+      position: fixed;
+      top: 60px;
+      right: 12px;
+      z-index: 10001;
+    }
+    .note-plus-icon {
+      background: #ffc107;
+      color: #000;
+      border: none;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      font-size: 24px;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    }
+    .note {
+      position: absolute;
+      background: #fff9c4;
+      border: 1px solid #ccc;
+      padding: 8px;
+      border-radius: 6px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+      z-index: 9998;
+      resize: both;
+      overflow: auto;
+      transition: transform 0.3s ease-out;
+    }
+    .note.slide-in {
+      transform: translateX(300px);
+    }
+    .note.show {
+      transform: translateX(0);
+    }
+    .note-header {
+      cursor: move;
+      background: #fff9c4;
+      padding: 2px 4px;
+      font-weight: bold;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .note-header-controls {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .note-upload {
+      cursor: pointer;
+      background: none;
+      border: none;
+      font-size: 16px;
+      padding: 2px;
+    }
+    .note-delete {
+      cursor: pointer;
+      font-weight: bold;
+      padding: 0 6px;
+      color: red;
+    }
+    .note textarea {
+      width: 100%;
+      min-height: 60px;
+      margin-top: 4px;
+      background: #fff9c4;
+      border: none;
+      resize: none;
+      overflow: hidden;
+      font-family: inherit;
+      font-size: 14px;
+    }
+    .note img {
+      max-width: 100%;
+      margin-top: 4px;
+      display: block;
+    }
+  `;
+        document.head.appendChild(style);
+
+        const container = document.createElement("div");
+        container.className = "note-plus-container";
+
+        const btn = document.createElement("button");
+        btn.id = "note-plus-btn";
+        btn.className = "note-plus-icon";
+        btn.textContent = "+";
+        container.appendChild(btn);
+        document.body.appendChild(container);
+
+        let noteMode = false;
+
+        btn.addEventListener("click", () => {
+          noteMode = !noteMode;
+          btn.style.backgroundColor = noteMode ? "#28a745" : "#ffc107";
+
+          if (noteMode) {
+            const note = document.createElement("div");
+            note.className = "note slide-in";
+
+            // Ensure note appears fully within visible screen
+            const noteWidth = 400;
+            const noteHeight = 300;
+            const left = Math.max(10, window.scrollX + window
+              .innerWidth - noteWidth - 20);
+            const top = window.scrollY + 100;
+
+            note.style.left = left + "px";
+            note.style.top = top + "px";
+
+            // Header with controls
+            const header = document.createElement("div");
+            header.className = "note-header";
+
+            const headerLeft = document.createElement("div");
+            headerLeft.textContent =
+              ""; // optional note title placeholder
+
+            const headerControls = document.createElement("div");
+            headerControls.className = "note-header-controls";
+
+            const uploadBtn = document.createElement("button");
+            uploadBtn.className = "note-upload";
+            uploadBtn.innerText = "↥";
+
+            const fileInput = document.createElement("input");
+            fileInput.type = "file";
+            fileInput.accept = "image/*";
+            fileInput.style.display = "none";
+
+            uploadBtn.onclick = () => fileInput.click();
+
+            const del = document.createElement("span");
+            del.className = "note-delete";
+            del.textContent = "×";
+            del.onclick = () => note.remove();
+
+            headerControls.append(uploadBtn, del);
+            header.append(headerLeft, headerControls);
+
+            const textarea = document.createElement("textarea");
+            const img = document.createElement("img");
+
+            // Auto-expand textarea
+            textarea.addEventListener("input", () => {
+              textarea.style.height = "auto";
+              textarea.style.height = textarea.scrollHeight + "px";
+            });
+
+            // Load image into note
+            fileInput.addEventListener("change", () => {
+              const file = fileInput.files[0];
+              if (file) {
+                const reader = new FileReader();
+                reader.onload = () => {
+                  img.src = reader.result;
+                };
+                reader.readAsDataURL(file);
+              }
+            });
+
+            note.append(header, fileInput, textarea, img);
+            document.body.appendChild(note);
+
+            // Trigger slide-in
+            void note.offsetWidth;
+            note.classList.add("show");
+
+            makeDraggable(note, header);
+            noteMode = false;
+            btn.style.backgroundColor = "#ffc107";
+          }
+        });
+
+        function makeDraggable(el, handle) {
+          let offsetX = 0,
+            offsetY = 0,
+            dragging = false;
+
+          handle.addEventListener("mousedown", e => {
+            dragging = true;
+            offsetX = e.clientX - el.offsetLeft;
+            offsetY = e.clientY - el.offsetTop;
+            document.body.style.userSelect = "none";
+          });
+
+          document.addEventListener("mousemove", e => {
+            if (!dragging) return;
+            el.style.left = e.clientX - offsetX + "px";
+            el.style.top = e.clientY - offsetY + "px";
+          });
+
+          document.addEventListener("mouseup", () => {
+            dragging = false;
+            document.body.style.userSelect = "";
+          });
+        }
+      }
+
+
+
+
 
       function buildNavBar(config) {
         if (document.getElementById("custom-navbar")) return;
@@ -894,6 +1111,8 @@
           if (config.tts) buildTTSButton();
 
           if (config.navBar) buildNavBar(config);
+
+          if(config.noteTool) buildNoteTool();
 
         }
       });
