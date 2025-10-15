@@ -8,6 +8,7 @@
         navBar: true,
         tts: true,
         h5pTabs: false,
+        saveAs: true,
         sanitizeSelectors: {
           parent: ".pb-5",
           selectors: [
@@ -137,6 +138,125 @@
         }],
         imageContainers: ["#mod_book-chapter"]
       }];
+
+
+
+/* =========================
+   Save menu: PDF | Webpage
+   ========================= */
+function buildSaveMenu() {
+  if (document.getElementById("save-menu")) return;
+
+  // --- Floating button + menu ---
+  const wrap = document.createElement("div");
+  wrap.id = "save-menu";
+  Object.assign(wrap.style, {
+    position: "fixed", bottom: "12px", right: "12px", zIndex: "30001"
+  });
+
+  const btn = document.createElement("button");
+  btn.textContent = "Save";
+  Object.assign(btn.style, {
+    padding: "10px 14px", border: "0", borderRadius: "999px",
+    fontWeight: "700", background: "#1a73d9", color: "#fff",
+    cursor: "pointer", boxShadow: "0 6px 20px rgba(0,0,0,.35)"
+  });
+
+  const menu = document.createElement("div");
+  Object.assign(menu.style, {
+    position: "absolute", right: "0", bottom: "48px",
+    background: "#1e1e1e", color: "#fff", borderRadius: "10px",
+    boxShadow: "0 6px 20px rgba(0,0,0,.35)", display: "none",
+    minWidth: "160px", overflow: "hidden"
+  });
+
+  const mkItem = (label, onClick) => {
+    const a = document.createElement("button");
+    a.textContent = label;
+    Object.assign(a.style, {
+      display: "block", width: "100%", textAlign: "left",
+      padding: "10px 12px", border: "0", background: "transparent",
+      color: "#fff", cursor: "pointer"
+    });
+    a.onmouseenter = () => a.style.background = "#2a2a2a";
+    a.onmouseleave = () => a.style.background = "transparent";
+    a.onclick = () => { menu.style.display = "none"; onClick(); };
+    return a;
+  };
+
+  menu.appendChild(mkItem("Save as PDF", () => {
+    // Clear any live selections, then print
+    window.getSelection()?.removeAllRanges?.();
+    window.print();
+  }));
+
+  menu.appendChild(mkItem("Save as Webpage (.html)", () => saveAsSingleFileHTML()));
+
+  btn.onclick = () => {
+    menu.style.display = (menu.style.display === "none") ? "block" : "none";
+  };
+
+  wrap.append(btn, menu);
+  document.body.appendChild(wrap);
+
+  // --- Print CSS (keep your existing rules + colors) ---
+  if (!document.getElementById("save-pdf-print-style")) {
+    const style = document.createElement("style");
+    style.id = "save-pdf-print-style";
+    style.textContent = `
+      @page { size: A4 portrait; margin: 12mm; }
+      @media print {
+        * { print-color-adjust: exact !important; -webkit-print-color-adjust: exact !important; }
+        html, body { padding-top: 0 !important; }
+        #custom-navbar, #tts-controls, #hl-palette, #mybutton,
+        .feedback-modal, #note-plus-btn, #save-menu { display: none !important; }
+        .note { box-shadow: none !important; break-inside: avoid; page-break-inside: avoid; }
+        [data-hl] { border-radius: .2em; }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+}
+
+/* ===========================================
+   Save current page as a single-file HTML
+   - Keeps your notes/highlights (they're DOM)
+   - Rebuilds interactive UI on open (event
+     listeners are reattached by your script)
+   =========================================== */
+function saveAsSingleFileHTML() {
+  // 1) Remove ephemeral UI so it’s rebuilt on open
+  ["save-menu","hl-palette","tts-controls","mybutton"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.remove();
+  });
+  document.querySelectorAll(".feedback-modal").forEach(m => m.remove());
+
+  // 2) Mark as offline so features always initialise
+  const injectFlag = document.createElement("script");
+  injectFlag.textContent = "window.__OFFLINE_SAVED__ = true;";
+  document.documentElement.appendChild(injectFlag);
+
+  // 3) Serialize current DOM (notes/highlights/images kept)
+  const doctype = "<!DOCTYPE html>";
+  const html = new XMLSerializer().serializeToString(document.documentElement);
+  const blob = new Blob([doctype + "\n" + html], { type: "text/html" });
+
+  // 4) Download
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  const safeTitle = (document.title || "page").replace(/[\\/:*?"<>|]+/g, "_");
+  a.download = safeTitle + ".html";
+  document.body.appendChild(a);
+  a.click();
+  URL.revokeObjectURL(a.href);
+  a.remove();
+
+  // 5) (Optional) Reload live page UI after export
+  setTimeout(() => location.reload(), 0);
+}
+
+      
 
       function buildNavBar(config) {
         if (document.getElementById("custom-navbar")) return;
@@ -894,6 +1014,7 @@
           if (config.tts) buildTTSButton();
 
           if (config.navBar) buildNavBar(config);
+          if(config.saveAs)buildSaveMenu();
 
         }
       });
