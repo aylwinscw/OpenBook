@@ -2,66 +2,96 @@
 
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <meta charset="UTF-8" />
-    <link rel="icon" href="OpenBook-Favicon.png" type="image/png">
-    <title>OpenBook</title>
-    <style>
-      body {
-        font-size: 18px;
-      }
-    </style>
-    <link
-      rel="stylesheet"
-      href="//cdn.jsdelivr.net/npm/docsify@4/themes/vue.css"
-    />
-  </head>
-  <body>
-    <div id="app"></div>
-    <script>
-      window.$docsify = {
-        coverpage: true,
-        coverpage: 'coverpage.md',
-      };
-    </script>
-    <script src="//cdn.jsdelivr.net/npm/docsify@4"></script>
-    <!-- 👇 Docsify plugin to enable the Copy & Open button -->
-    <script>
-      window.$docsify = window.$docsify || {};
-      window.$docsify.plugins = [].concat(window.$docsify.plugins || [], function(hook, vm) {
-        hook.doneEach(function() {
-          // Find all custom buttons in rendered Markdown
-          document.querySelectorAll('.copy-open-btn').forEach(btn => {
-            if (btn.dataset.bound) return; // Prevent duplicate bindings
-            btn.dataset.bound = true;
 
-            btn.addEventListener('click', async (e) => {
-              const blobUrl = e.target.dataset.url;
-              if (!blobUrl) {
-                alert("Missing data-url attribute.");
-                return;
-              }
+<head>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta charset="UTF-8" />
+  <link rel="icon" href="OpenBook-Favicon.png" type="image/png">
+  <title>OpenBook</title>
+  <style>
+    body {
+      font-size: 18px;
+    }
+  </style>
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify@4/themes/vue.css" />
+  <link rel="stylesheet" href="custom.css">
+</head>
 
-              const rawUrl = blobUrl
-                .replace('github.com', 'raw.githubusercontent.com')
-                .replace('/blob/', '/');
+<body>
+  <div id="app"></div>
+  <script>
+    window.$docsify = {
+      coverpage: true,
+      coverpage: 'coverpage.md',
+    };
+  </script>
+  <script src="//cdn.jsdelivr.net/npm/docsify@4"></script>
+  <!-- 👇 Docsify plugin to enable the Copy & Open button -->
+  <script>
+    window.$docsify = window.$docsify || {};
+    window.$docsify.plugins = [].concat(window.$docsify.plugins || [], function (hook, vm) {
+      hook.doneEach(function () {
+        document.querySelectorAll('.copy-open-btn').forEach(btn => {
+          if (btn.dataset.bound) return;
+          btn.dataset.bound = true;
 
+          btn.addEventListener('click', async e => {
+            const blobUrl = e.target.dataset.url;
+            if (!blobUrl) return showTooltip(btn, '⚠️ Missing data-url');
+
+            const rawUrl = blobUrl
+              .replace('github.com', 'raw.githubusercontent.com')
+              .replace('/blob/', '/');
+
+            try {
+              const res = await fetch(rawUrl);
+              if (!res.ok) throw new Error('Unable to fetch file.');
+              const text = await res.text();
+
+              // ✅ Try Clipboard API; fallback for Safari
               try {
-                const res = await fetch(rawUrl);
-                if (!res.ok) throw new Error('Unable to fetch file.');
-                const text = await res.text();
                 await navigator.clipboard.writeText(text);
-                alert('✅ Code copied to clipboard!');
-                window.location.href = blobUrl;
-              } catch (err) {
-                alert('⚠️ ' + err.message);
+              } catch {
+                const temp = document.createElement('textarea');
+                temp.value = text;
+                document.body.appendChild(temp);
+                temp.select();
+                document.execCommand('copy');
+                document.body.removeChild(temp);
               }
-            });
+
+              showTooltip(btn, '✅ Copied!');
+            } catch (err) {
+              showTooltip(btn, '⚠️ Copy failed');
+              console.error(err);
+            }
           });
+
+          // Tooltip helper
+          function showTooltip(target, message) {
+            const tooltip = document.createElement('div');
+            tooltip.textContent = message;
+            tooltip.className = 'copy-tooltip';
+            document.body.appendChild(tooltip);
+
+            const rect = target.getBoundingClientRect();
+            tooltip.style.left = rect.left + window.scrollX + rect.width / 2 + 'px';
+            tooltip.style.top = rect.top + window.scrollY - 30 + 'px';
+
+            setTimeout(() => {
+              tooltip.classList.add('visible');
+            }, 10);
+
+            setTimeout(() => {
+              tooltip.classList.remove('visible');
+              setTimeout(() => tooltip.remove(), 300);
+            }, 1500);
+          }
         });
       });
-    </script>
-  </body>
+    });
+  </script>
+</body>
+
 </html>

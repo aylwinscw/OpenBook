@@ -1,0 +1,33 @@
+.copy-open-btn {
+  background-color: #0366d6;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+  font-size: 14px;
+  margin-top: 6px;
+}
+.copy-open-btn:hover {
+  background-color: #024ea0;
+}
+
+/* Tooltip */
+.copy-tooltip {
+  position: absolute;
+  transform: translateX(-50%);
+  background: #323232;
+  color: #fff;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 13px;
+  opacity: 0;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  pointer-events: none;
+  z-index: 9999;
+}
+.copy-tooltip.visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(-2px);
+}
