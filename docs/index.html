@@ -27,5 +27,41 @@
       };
     </script>
     <script src="//cdn.jsdelivr.net/npm/docsify@4"></script>
+    <!-- 👇 Docsify plugin to enable the Copy & Open button -->
+    <script>
+      window.$docsify = window.$docsify || {};
+      window.$docsify.plugins = [].concat(window.$docsify.plugins || [], function(hook, vm) {
+        hook.doneEach(function() {
+          // Find all custom buttons in rendered Markdown
+          document.querySelectorAll('.copy-open-btn').forEach(btn => {
+            if (btn.dataset.bound) return; // Prevent duplicate bindings
+            btn.dataset.bound = true;
+
+            btn.addEventListener('click', async (e) => {
+              const blobUrl = e.target.dataset.url;
+              if (!blobUrl) {
+                alert("Missing data-url attribute.");
+                return;
+              }
+
+              const rawUrl = blobUrl
+                .replace('github.com', 'raw.githubusercontent.com')
+                .replace('/blob/', '/');
+
+              try {
+                const res = await fetch(rawUrl);
+                if (!res.ok) throw new Error('Unable to fetch file.');
+                const text = await res.text();
+                await navigator.clipboard.writeText(text);
+                alert('✅ Code copied to clipboard!');
+                window.location.href = blobUrl;
+              } catch (err) {
+                alert('⚠️ ' + err.message);
+              }
+            });
+          });
+        });
+      });
+    </script>
   </body>
 </html>
