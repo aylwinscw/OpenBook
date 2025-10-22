@@ -29,7 +29,71 @@
   </script>
   <script src="//cdn.jsdelivr.net/npm/docsify@4"></script>
   <!-- <script src="//cdn.jsdelivr.net/npm/docsify/lib/docsify.min.js"></script> -->
-  <!-- 👇 Docsify plugin to enable the Copy & Open button -->
+  <!-- Added copy button -->
+  <script>
+    window.$docsify = window.$docsify || {};
+    window.$docsify.plugins = [].concat(window.$docsify.plugins || [], function (hook, vm) {
+      hook.doneEach(function () {
+        document.querySelectorAll('.copy-open-btn').forEach(btn => {
+          if (btn.dataset.bound) return;
+          btn.dataset.bound = true;
+
+          btn.addEventListener('click', async e => {
+            const blobUrl = e.target.dataset.url;
+            if (!blobUrl) return showTooltip(btn, '⚠️ Missing data-url');
+
+            const rawUrl = blobUrl
+              .replace('github.com', 'raw.githubusercontent.com')
+              .replace('/blob/', '/');
+
+            try {
+              const res = await fetch(rawUrl);
+              if (!res.ok) throw new Error('Unable to fetch file.');
+              const text = await res.text();
+
+              // ✅ Try Clipboard API; fallback for Safari
+              try {
+                await navigator.clipboard.writeText(text);
+              } catch {
+                const temp = document.createElement('textarea');
+                temp.value = text;
+                document.body.appendChild(temp);
+                temp.select();
+                document.execCommand('copy');
+                document.body.removeChild(temp);
+              }
+
+              showTooltip(btn, '✅ Copied!');
+            } catch (err) {
+              showTooltip(btn, '⚠️ Copy failed');
+              console.error(err);
+            }
+          });
+
+          // Tooltip helper
+          function showTooltip(target, message) {
+            const tooltip = document.createElement('div');
+            tooltip.textContent = message;
+            tooltip.className = 'copy-tooltip';
+            document.body.appendChild(tooltip);
+
+            const rect = target.getBoundingClientRect();
+            tooltip.style.left = rect.left + window.scrollX + rect.width / 2 + 'px';
+            tooltip.style.top = rect.top + window.scrollY - 30 + 'px';
+
+            setTimeout(() => {
+              tooltip.classList.add('visible');
+            }, 10);
+
+            setTimeout(() => {
+              tooltip.classList.remove('visible');
+              setTimeout(() => tooltip.remove(), 300);
+            }, 1500);
+          }
+        });
+      });
+    });
+  </script>
 </body>
 
 </html>
