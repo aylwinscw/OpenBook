@@ -1,1 +1,10 @@
 .DS_Store
+# Node modules
+node_modules/
+
+# Docsify / GitHub Pages
+.nojekyll
+
+# NPM lock files
+package-lock.json
+package.json
