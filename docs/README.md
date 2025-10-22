@@ -17,7 +17,3 @@ Pick one Moodle book you would like to use. Click on **Setting** > **Select HTML
 ### Step 3: Launch
 
 Click **More** > **Print book** to view.
-
-## Demonstration
-
-<img src="https://raw.githubusercontent.com/aylwinscw/OpenBook/main/docs/How-to-use-OpenBook.gif" alt="How to use OpenBook" width="800">
