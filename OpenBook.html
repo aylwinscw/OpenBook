@@ -821,23 +821,28 @@
 
             const icon = document.createElement("div");
             icon.innerHTML = `
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none"
              xmlns="http://www.w3.org/2000/svg">
           <path d="M10 2h4v4" stroke="white" stroke-width="2"/>
           <path d="M2 10v4h4" stroke="white" stroke-width="2"/>
         </svg>
       `;
+
             Object.assign(icon.style, {
               position: "absolute",
-              bottom: "5px",
-              right: "5px",
-              backgroundColor: "rgba(0,0,0,0.5)",
-              color: "#fff",
-              padding: "2px 5px",
+              bottom: "6px",
+              right: "6px",
+              width: "24px",
+              height: "24px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              backgroundColor: "rgba(0,0,0,0.6)",
+              borderRadius: "4px", // optional: use "50%" for circle
               cursor: "pointer",
-              borderRadius: "3px",
-              zIndex: "10"
+              zIndex: "10",
             });
+
             wrapper.appendChild(icon);
 
             icon.addEventListener("click", e => {
@@ -846,7 +851,6 @@
             });
           };
 
-          // Ensure we only process once the image is loaded
           if (img.complete) {
             processImage();
           } else {
@@ -854,7 +858,6 @@
           }
         });
       }
-
       function sanitizeSelectors(config) {
         if (!config?.sanitizeSelectors) return;
 
