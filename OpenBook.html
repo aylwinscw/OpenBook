@@ -805,8 +805,15 @@
 
       // ✅ Helper: add fullscreen icons to images
       function addFullscreenIcons(containerSelector) {
-        document.querySelectorAll(containerSelector + " img").forEach(
-          img => {
+        const images = document.querySelectorAll(`${containerSelector} img`);
+
+        images.forEach(img => {
+          const processImage = () => {
+            const { width, height } = img;
+
+            // Skip small images (less than 100x100 px)
+            if (width < 100 || height < 100) return;
+
             const wrapper = document.createElement("div");
             wrapper.style.position = "relative";
             img.parentNode.insertBefore(wrapper, img);
@@ -814,14 +821,12 @@
 
             const icon = document.createElement("div");
             icon.innerHTML = `
-  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" 
-       xmlns="http://www.w3.org/2000/svg">
-    <!-- Top-right corner -->
-    <path d="M10 2h4v4" stroke="white" stroke-width="2"/>
-    <!-- Bottom-left corner -->
-    <path d="M2 10v4h4" stroke="white" stroke-width="2"/>
-  </svg>
-`;
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"
+             xmlns="http://www.w3.org/2000/svg">
+          <path d="M10 2h4v4" stroke="white" stroke-width="2"/>
+          <path d="M2 10v4h4" stroke="white" stroke-width="2"/>
+        </svg>
+      `;
             Object.assign(icon.style, {
               position: "absolute",
               bottom: "5px",
@@ -829,7 +834,6 @@
               backgroundColor: "rgba(0,0,0,0.5)",
               color: "#fff",
               padding: "2px 5px",
-              fontSize: "14px",
               cursor: "pointer",
               borderRadius: "3px",
               zIndex: "10"
@@ -840,7 +844,15 @@
               e.stopPropagation();
               createFullscreenModal(img.src);
             });
-          });
+          };
+
+          // Ensure we only process once the image is loaded
+          if (img.complete) {
+            processImage();
+          } else {
+            img.addEventListener("load", processImage);
+          }
+        });
       }
 
       function sanitizeSelectors(config) {
