@@ -1,6 +1,6 @@
 ## Image Viewer
 
-Image viewer allows students to view the image in a full screen mode.
+Image viewer allows students to view the image in full screen mode.
 
 ## Customise
 

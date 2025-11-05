@@ -805,42 +805,99 @@
 
       // ✅ Helper: add fullscreen icons to images
       function addFullscreenIcons(containerSelector) {
-        document.querySelectorAll(containerSelector + " img").forEach(
-          img => {
+        const images = document.querySelectorAll(`${containerSelector} img`);
+
+        images.forEach(img => {
+          const processImage = () => {
+            const { width, height } = img;
+
+            if (width < 100 || height < 100) return;
+
             const wrapper = document.createElement("div");
             wrapper.style.position = "relative";
+            wrapper.style.display = "inline-block";
+            wrapper.style.lineHeight = "0";
+
+            const parentLink = img.closest("a");
+            if (parentLink) {
+              // Move image out of link to disable default link behavior
+              parentLink.parentNode.insertBefore(img, parentLink);
+              // parentLink remains in DOM if needed
+            }
+
             img.parentNode.insertBefore(wrapper, img);
             wrapper.appendChild(img);
 
-            const icon = document.createElement("div");
-            icon.innerHTML = `
-  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" 
-       xmlns="http://www.w3.org/2000/svg">
-    <!-- Top-right corner -->
-    <path d="M10 2h4v4" stroke="white" stroke-width="2"/>
-    <!-- Bottom-left corner -->
-    <path d="M2 10v4h4" stroke="white" stroke-width="2"/>
-  </svg>
-`;
-            Object.assign(icon.style, {
+            // --- Fullscreen icon ---
+            const fullIcon = document.createElement("div");
+            fullIcon.innerHTML = `
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none"
+             xmlns="http://www.w3.org/2000/svg">
+          <path d="M10 2h4v4" stroke="white" stroke-width="2"/>
+          <path d="M2 10v4h4" stroke="white" stroke-width="2"/>
+        </svg>
+      `;
+            Object.assign(fullIcon.style, {
               position: "absolute",
-              bottom: "5px",
-              right: "5px",
-              backgroundColor: "rgba(0,0,0,0.5)",
-              color: "#fff",
-              padding: "2px 5px",
-              fontSize: "14px",
+              bottom: "6px",
+              right: "6px",
+              width: "24px",
+              height: "24px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              backgroundColor: "rgba(0,0,0,0.6)",
+              borderRadius: "4px",
               cursor: "pointer",
-              borderRadius: "3px",
-              zIndex: "10"
+              zIndex: "1000",
             });
-            wrapper.appendChild(icon);
+            wrapper.appendChild(fullIcon);
 
-            icon.addEventListener("click", e => {
+            fullIcon.addEventListener("click", e => {
               e.stopPropagation();
               createFullscreenModal(img.src);
             });
-          });
+
+            // --- Open link button ---
+            if (parentLink) {
+              const linkBtn = document.createElement("div");
+              linkBtn.textContent = "Open link";
+              Object.assign(linkBtn.style, {
+                position: "absolute",
+                bottom: "6px",
+                right: "36px",
+                padding: "0 6px",
+                height: "24px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                backgroundColor: "rgba(0,0,0,0.6)",
+                color: "#fff",
+                borderRadius: "4px",
+                fontSize: "12px",
+                cursor: "pointer",
+                zIndex: "1000",
+                userSelect: "none",
+                whiteSpace: "nowrap",
+              });
+              wrapper.appendChild(linkBtn);
+
+              linkBtn.addEventListener("click", e => {
+                e.stopPropagation();   // prevents event bubbling
+                window.open(parentLink.href, "_blank"); // open the link
+              });
+            }
+
+            const resizeObserver = new ResizeObserver(() => { });
+            resizeObserver.observe(img);
+          };
+
+          if (img.complete) {
+            processImage();
+          } else {
+            img.addEventListener("load", processImage);
+          }
+        });
       }
 
       function sanitizeSelectors(config) {
