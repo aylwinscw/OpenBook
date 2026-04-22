@@ -1,142 +1,140 @@
 <div>
   <script>
-    document.addEventListener("DOMContentLoaded", function () {
+    document.addEventListener("DOMContentLoaded", function() {
 
       // Declarative page configs (For Ed Devs to edit, note)
       const PAGE_CONFIGS = [{
-        urlIncludes: "book/tool",
-        navBar: true,
-        tts: true,
-        h5pTabs: false,
-        sanitizeSelectors: {
-          parent: ".pb-5",
-          selectors: [
-            ".atto_bsgrid.container-fluid",
-            ".row-fluid",
-            ".col-md-8.span8"
-          ]
+          urlIncludes: "book/tool",
+          navBar: true,
+          tts: true,
+          h5pTabs: false,
+          banner: true,
+          learnNav: true,
+          sanitizeSelectors: {
+            parent: ".pb-5",
+            selectors: [
+              ".atto_bsgrid.container-fluid",
+              ".row-fluid",
+              ".col-md-8",
+              ".col-md-4",
+              ".col-md-6",
+              ".col-md-1"
+            ]
+          },
+          enableFullscreenImages: true,
+          rules: {
+            "html": {
+              scrollPaddingTop: "64px"
+            },
+            ".book_chapter p, .book_chapter li, .book_chapter ol, .book_chapter ul, .book_chapter span": {
+              fontSize: "18px",
+              lineHeight: "1.5"
+            },
+            "iframe[src*='youtube.com']": {
+              width: ["100%", "important"],
+              height: ["auto", "important"],
+              aspectRatio: "16/9"
+            },
+            "img, iframe": {
+              display: "block",
+              marginLeft: "auto",
+              marginRight: "auto",
+              maxWidth: "100%"
+            },
+            "div.pb-5": {
+              paddingTop: "3rem",
+              margin: "-1.5rem",
+              paddingInline: "1.5rem"
+            },
+            "div.py-5": {
+              paddingTop: ["0", "important"]
+            },
+            ".book_chapter h2.text-center.pb-5": {
+              paddingTop: "0"
+            },
+            ".pb-5:nth-child(2n)": {
+              backgroundColor: "#f3f3f3"
+            },
+            ".book.p-4 > div:nth-child(1)": {
+              display: ["none", "important"]
+            }, // print_button
+            ".book.p-4 > div:nth-child(2)": {
+              display: ["none", "important"]
+            }, // book_title
+            ".book.p-4 > div:nth-child(3)": {
+              display: ["none", "important"]
+            }, // book_info
+            ".book.p-4 > div:nth-child(4)": {
+              display: ["none", "important"]
+            }, // book_table
+            // ".book.p-4 > div:nth-child(5)": {
+            //   display: ["none", "important"]
+            // }, // Hide Table of Content
+            ".h5p-placeholder": {
+              backgroundColor: "#ffffff",
+              padding: "16px",
+              borderRadius: "8px",
+              marginBottom: "8px"
+            } // Adding padding for H5P Activities
+          },
+          wrapSelectors: [{
+            selector: ".book_chapter",
+            styles: {
+              maxWidth: "1000px",
+              margin: "0 auto",
+            },
+            skipFirstChild: true // <-- skip the first .book_chapter
+          }],
+          imageContainers: [".book_chapter"],
+          feedback: {
+            enable: false,
+            url: "" // replace with actual URL
+          }
         },
-        enableFullscreenImages: true,
-        rules: {
-          "html": {
-            scrollPaddingTop: "64px"
+        {
+          urlIncludes: "mod/book/view.php",
+          h5pTabs: false,
+          learnNav: true,
+          sanitizeSelectors: {
+            parent: "#mod_book-chapter",
+            selectors: [
+              ".atto_bsgrid.container-fluid",
+              ".row-fluid",
+              ".col-md-8",
+              ".col-md-4",
+              ".col-md-6",
+              ".col-md-1"
+            ]
           },
-          ".book_chapter p, .book_chapter li, .book_chapter ol, .book_chapter ul, .book_chapter span": {
-            fontSize: "18px",
-            lineHeight: "1.5"
+          enableFullscreenImages: true,
+          rules: {
+            "#mod_book-chapter p, #mod_book-chapter li, #mod_book-chapter ol, #mod_book-chapter ul, #mod_book-chapter span": {
+              fontSize: "18px",
+              lineHeight: "1.5"
+            },
+            "iframe[src*='youtube.com']": {
+              width: ["100%", "important"],
+              height: ["auto", "important"],
+              aspectRatio: "16/9"
+            },
+            "img, iframe": {
+              display: "block",
+              marginLeft: "auto",
+              marginRight: "auto",
+              maxWidth: "100%"
+            },
           },
-          "iframe[src*='youtube.com']": {
-            width: ["100%", "important"],
-            height: ["auto", "important"],
-            aspectRatio: "16/9"
-          },
-          "img, iframe": {
-            display: "block",
-            marginLeft: "auto",
-            marginRight: "auto",
-            maxWidth: "100%"
-          },
-          "div.pb-5": {
-            paddingTop: "3rem",
-            margin: "-1.5rem",
-            paddingInline: "1.5rem"
-          },
-          "div.py-5": {
-            paddingTop: ["0", "important"]
-          },
-          ".book_chapter h2.text-center.pb-5": {
-            paddingTop: "0"
-          },
-          ".pb-5:nth-child(2n)": {
-            backgroundColor: "#fffad9"
-          }, // yellow
-          ".pb-5:nth-child(4n)": {
-            backgroundColor: "#e0f2fb"
-          }, // light blue
-          ".pb-5:nth-child(6n)": {
-            backgroundColor: "#f3f3f3"
-          }, // grey
-          ".pb-5:nth-child(8n)": {
-            backgroundColor: "#ddf7ed"
-          }, // light green
-          ".pb-5:nth-child(10n)": {
-            backgroundColor: "#e2e7f6"
-          }, // indigo
-          ".book.p-4 > div:nth-child(1)": {
-            display: ["none", "important"]
-          }, // print_button
-          ".book.p-4 > div:nth-child(2)": {
-            display: ["none", "important"]
-          }, // book_title
-          ".book.p-4 > div:nth-child(3)": {
-            display: ["none", "important"]
-          }, // book_info
-          ".book.p-4 > div:nth-child(4)": {
-            display: ["none", "important"]
-          }, // book_table
-          // ".book.p-4 > div:nth-child(5)": {
-          //   display: ["none", "important"]
-          // }, // Hide Table of Content
-          ".h5p-placeholder": {
-            backgroundColor: "#ffffff",
-            padding: "16px",
-            borderRadius: "8px",
-            marginBottom: "8px"
-          } // Adding padding for H5P Activities
-        },
-        wrapSelectors: [{
-          selector: ".book_chapter",
-          styles: {
-            maxWidth: "700px",
-            margin: "0 auto",
-          },
-          skipFirstChild: true // <-- skip the first .book_chapter
-        }],
-        imageContainers: [".book_chapter"],
-        feedback: {
-          enable: true,
-          url: "https://forms.office.com/Pages/ResponsePage.aspx?id=pM_2PxXn20i44Qhnufn7o1suQ_Z7jxBCiiS1XhYfUGNUOUZMUDNMQlVDUzNVUkVYQlA1WUVHSElBRC4u" // replace with actual URL
+          wrapSelectors: [{
+            selector: "#mod_book-chapter .no-overflow",
+            styles: {
+              maxWidth: "1000px",
+              margin: "0 auto"
+            },
+            skipFirstChild: false
+          }],
+          imageContainers: ["#mod_book-chapter"]
         }
-      },
-      {
-        urlIncludes: "mod/book/view.php",
-        h5pTabs: false,
-        sanitizeSelectors: {
-          parent: "#mod_book-chapter",
-          selectors: [
-            ".atto_bsgrid.container-fluid",
-            ".row-fluid",
-            ".col-md-8.span8"
-          ]
-        },
-        enableFullscreenImages: true,
-        rules: {
-          "#mod_book-chapter p, #mod_book-chapter li, #mod_book-chapter ol, #mod_book-chapter ul, #mod_book-chapter span": {
-            fontSize: "18px",
-            lineHeight: "1.5"
-          },
-          "iframe[src*='youtube.com']": {
-            width: ["100%", "important"],
-            height: ["auto", "important"],
-            aspectRatio: "16/9"
-          },
-          "img, iframe": {
-            display: "block",
-            marginLeft: "auto",
-            marginRight: "auto",
-            maxWidth: "100%"
-          },
-        },
-        wrapSelectors: [{
-          selector: "#mod_book-chapter .no-overflow",
-          styles: {
-            maxWidth: "700px",
-            margin: "0 auto"
-          },
-          skipFirstChild: false
-        }],
-        imageContainers: ["#mod_book-chapter"]
-      }];
+      ];
 
       function buildNavBar(config) {
         if (document.getElementById("custom-navbar")) return;
@@ -280,9 +278,9 @@
             // Find the last section whose top <= offset from viewport top
             let activeHref = targets[0]?.href || "";
             for (const {
-              href,
-              el
-            }
+                href,
+                el
+              }
               of targets) {
               const top = el.getBoundingClientRect().top;
               if (top - offset <= 0) activeHref = href;
@@ -306,9 +304,11 @@
         });
       }
 
+
       function buildTTSButton() {
         if (document.getElementById("tts-controls")) return;
 
+        // ========= UI =========
         const container = document.createElement("div");
         container.id = "tts-controls";
         Object.assign(container.style, {
@@ -320,19 +320,41 @@
           zIndex: "19999"
         });
 
-        const buttons = [{
-          id: "tts-prev",
-          svg: `<svg width="24" height="24" viewBox="0 0 24 24"><path d="M15 18L9 12L15 6" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`
-        },
-        {
-          id: "tts-play",
-          svgPlay: `<svg width="24" height="24" viewBox="0 0 24 24"><path d="M8 5V19L19 12L8 5Z" fill="white"/></svg>`,
-          svgPause: `<svg width="24" height="24" viewBox="0 0 24 24"><rect x="6" y="5" width="4" height="14" fill="white"/><rect x="14" y="5" width="4" height="14" fill="white"/></svg>`
-        },
-        {
-          id: "tts-next",
-          svg: `<svg width="24" height="24" viewBox="0 0 24 24"><path d="M9 6L15 12L9 18" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`
+        // Highlight style (style-neutral)
+        if (!document.getElementById("openbook-tts-style")) {
+          const style = document.createElement("style");
+          style.id = "openbook-tts-style";
+          style.textContent = `
+      .openbook-tts-sentence{
+        background: #d4edda !important;
+        border-radius: 3px;
+        padding: 0 !important;
+
+        /* do not alter typography */
+        font: inherit !important;
+        font-size: inherit !important;
+        font-family: inherit !important;
+        font-weight: inherit !important;
+        line-height: inherit !important;
+        color: inherit !important;
+      }
+    `;
+          document.head.appendChild(style);
         }
+
+        const buttons = [{
+            id: "tts-prev",
+            svg: `<svg width="24" height="24" viewBox="0 0 24 24"><path d="M15 18L9 12L15 6" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`
+          },
+          {
+            id: "tts-play",
+            svgPlay: `<svg width="24" height="24" viewBox="0 0 24 24"><path d="M8 5V19L19 12L8 5Z" fill="white"/></svg>`,
+            svgPause: `<svg width="24" height="24" viewBox="0 0 24 24"><rect x="6" y="5" width="4" height="14" fill="white"/><rect x="14" y="5" width="4" height="14" fill="white"/></svg>`
+          },
+          {
+            id: "tts-next",
+            svg: `<svg width="24" height="24" viewBox="0 0 24 24"><path d="M9 6L15 12L9 18" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`
+          }
         ];
 
         const btnEls = {};
@@ -351,8 +373,7 @@
             alignItems: "center",
             boxShadow: "0 2px 6px rgba(0,0,0,0.3)"
           });
-          if (info.svg) btn.innerHTML = info.svg;
-          else if (info.svgPlay) btn.innerHTML = info.svgPlay;
+          btn.innerHTML = info.svg || info.svgPlay;
           container.appendChild(btn);
           btnEls[info.id] = btn;
           if (info.svgPlay) {
@@ -360,128 +381,331 @@
             btnEls.pauseSvg = info.svgPause;
           }
         });
+
         document.body.appendChild(container);
 
-        const bookContent = document.querySelector(
-          ".book.p-4 > div:last-child");
-        if (!bookContent) return;
+        // ========= Content root =========
+        const root =
+          document.querySelector(".book.p-4 > div:last-child") ||
+          document.querySelector("#mod_book-chapter") ||
+          document.body;
 
-        let sentenceSpans = [];
-        let currentIndex = 0;
-        let isSpeaking = false;
-        let isPaused = false;
+        // Readable candidates (includes tables)
+        const READABLE =
+          "p, li, h1, h2, h3, h4, h5, h6, caption, th, td, figcaption, dt, dd";
 
-        const sentenceRegex = /[^.!?\n]+[.!?\n]*/g;
+        // Things we do not read / do not highlight within
+        const SKIP_SELECTOR = [
+          "script", "style", "nav",
+          "button", "input", "textarea", "select",
+          ".h5p-placeholder", ".activity",
+          ".breadcrumb", "#custom-navbar", "#tts-controls",
+          "[aria-hidden='true']", "[hidden]"
+        ].join(",");
 
-        const wrapSentences = () => {
-          let index = 0;
-          const walk = node => {
-            if (node.nodeType === Node.TEXT_NODE && node.textContent
-              .trim()) {
-              const chunks = node.textContent.match(sentenceRegex) || [
-                node.textContent
-              ];
-              const frag = document.createDocumentFragment();
-              const parentStyles = window.getComputedStyle(node
-                .parentNode);
-              const styleProps = {
-                fontSize: parentStyles.fontSize,
-                fontWeight: parentStyles.fontWeight,
-                fontFamily: parentStyles.fontFamily,
-                lineHeight: parentStyles.lineHeight
-              };
-              chunks.forEach(chunk => {
-                const span = document.createElement("span");
-                span.dataset.sentenceIndex = index++;
-                span.textContent = chunk.trim();
-                Object.assign(span.style, styleProps);
-                frag.appendChild(span);
-                frag.appendChild(document.createTextNode(" "));
-              });
-              node.parentNode.replaceChild(frag, node);
-            } else if (node.nodeType === Node.ELEMENT_NODE && node
-              .tagName !== "SCRIPT") {
-              Array.from(node.childNodes).forEach(walk);
-            }
+        // ========= Utilities =========
+        function normalizeForSpeech(text) {
+          return (text || "")
+            .replace(/\u00A0/g, " ")
+            .replace(/\s+/g, " ")
+            .replace(/\s+([.,!?;:])/g, "$1")
+            .trim();
+        }
+
+        function isVisible(el) {
+          if (!el || !(el instanceof Element)) return false;
+          const style = window.getComputedStyle(el);
+          if (style.display === "none" || style.visibility === "hidden")
+            return false;
+          if (el.hasAttribute("hidden") || el.getAttribute(
+              "aria-hidden") === "true") return false;
+          if (!el.getClientRects().length) return false;
+          return true;
+        }
+
+        // Sentence segmentation with ranges
+        const sentenceSegmenter = (window.Intl && Intl.Segmenter) ?
+          new Intl.Segmenter("en", {
+            granularity: "sentence"
+          }) :
+          null;
+
+        function splitSentencesWithRanges(text) {
+          const t = text || "";
+          if (!t.trim()) return [];
+
+          let pieces;
+          if (sentenceSegmenter) {
+            pieces = Array.from(sentenceSegmenter.segment(t)).map(seg => ({
+              raw: seg.segment,
+              index: seg.index
+            }));
+          } else {
+            const re = /[^.!?\n]+[.!?\n]*/g;
+            pieces = [];
+            let m;
+            while ((m = re.exec(t)) !== null) pieces.push({
+              raw: m[0],
+              index: m.index
+            });
+            if (!pieces.length) pieces = [{
+              raw: t,
+              index: 0
+            }];
+          }
+
+          return pieces
+            .map(p => ({
+              start: p.index,
+              end: p.index + p.raw.length,
+              text: normalizeForSpeech(p.raw)
+            }))
+            .filter(s => s.text && !/^[\p{P}\p{S}]+$/u.test(s.text) &&
+              /[A-Za-z0-9]/.test(s.text));
+        }
+
+        // Collect text nodes inside an element, excluding skipped subtrees
+        function getTextNodes(el) {
+          const walker = document.createTreeWalker(el, NodeFilter
+            .SHOW_TEXT, {
+              acceptNode(node) {
+                if (!node.nodeValue || !node.nodeValue.trim())
+                  return NodeFilter.FILTER_REJECT;
+                const p = node.parentElement;
+                if (!p) return NodeFilter.FILTER_REJECT;
+                if (p.closest(SKIP_SELECTOR)) return NodeFilter
+                  .FILTER_REJECT;
+                return NodeFilter.FILTER_ACCEPT;
+              }
+            });
+          const nodes = [];
+          let n;
+          while ((n = walker.nextNode())) nodes.push(n);
+          return nodes;
+        }
+
+        // Build rawText for the element + mapping back to text nodes (supports bold/inline)
+        function buildBlockTextMap(blockEl) {
+          const nodes = getTextNodes(blockEl);
+          const segments = []; // { node|null, start, end }
+          let raw = "";
+          let pos = 0;
+
+          const needsSpaceBetween = (a, b) => {
+            if (!a || !b) return false;
+            const last = a.slice(-1);
+            const first = b.slice(0, 1);
+            return last && first && !/\s/.test(last) && !/\s/.test(first);
           };
-          walk(bookContent);
-          sentenceSpans = [...bookContent.querySelectorAll(
-            "span[data-sentence-index]")];
-        };
 
-        const highlightSentence = index => {
-          sentenceSpans.forEach((span, i) => {
-            span.style.backgroundColor = i === index ? "#d4edda" :
-              "transparent";
-            span.offsetHeight; // force reflow for Safari highlight
-          });
-        };
+          for (let i = 0; i < nodes.length; i++) {
+            const node = nodes[i];
+            const txt = node.nodeValue || "";
 
-        const getFirstVisibleIndex = () => {
-          const viewportTop = window.scrollY;
-          const viewportBottom = viewportTop + window.innerHeight;
-          for (let i = 0; i < sentenceSpans.length; i++) {
-            const rect = sentenceSpans[i].getBoundingClientRect();
-            const absTop = rect.top + window.scrollY;
-            if (absTop >= viewportTop && absTop <= viewportBottom)
-              return i;
+            if (i > 0) {
+              const prev = nodes[i - 1].nodeValue || "";
+              if (needsSpaceBetween(prev, txt)) {
+                raw += " ";
+                segments.push({
+                  node: null,
+                  start: pos,
+                  end: pos + 1
+                });
+                pos += 1;
+              }
+            }
+
+            raw += txt;
+            segments.push({
+              node,
+              start: pos,
+              end: pos + txt.length
+            });
+            pos += txt.length;
+          }
+
+          return {
+            rawText: raw,
+            segments
+          };
+        }
+
+        // Remove previous highlights (unwrap spans)
+        function clearSentenceHighlights() {
+          root.querySelectorAll("span.openbook-tts-sentence").forEach(
+            span => {
+              const parent = span.parentNode;
+              while (span.firstChild) parent.insertBefore(span.firstChild,
+                span);
+              parent.removeChild(span);
+              parent.normalize();
+            });
+        }
+
+        // Highlight by character range inside the element (wrap fragments)
+        function highlightSentence(blockEl, start, end) {
+          clearSentenceHighlights();
+
+          const {
+            rawText,
+            segments
+          } = buildBlockTextMap(blockEl);
+          if (!rawText) return;
+
+          const s = Math.max(0, Math.min(start, rawText.length));
+          const e = Math.max(0, Math.min(end, rawText.length));
+          if (e <= s) return;
+
+          for (const seg of segments) {
+            if (!seg.node) continue;
+            if (seg.end <= s || seg.start >= e) continue;
+
+            const node = seg.node;
+            const localStart = Math.max(s, seg.start) - seg.start;
+            const localEnd = Math.min(e, seg.end) - seg.start;
+
+            let target = node;
+
+            if (localStart > 0) target = target.splitText(localStart);
+            if ((localEnd - localStart) < target.nodeValue.length) target
+              .splitText(localEnd - localStart);
+
+            const span = document.createElement("span");
+            span.className = "openbook-tts-sentence";
+            target.parentNode.insertBefore(span, target);
+            span.appendChild(target);
+          }
+        }
+
+        function getFirstVisibleIndex(queue) {
+          const top = 0;
+          const bottom = window.innerHeight;
+          for (let i = 0; i < queue.length; i++) {
+            const rect = queue[i].block.getBoundingClientRect();
+            if (rect.bottom >= top && rect.top <= bottom) return i;
           }
           return 0;
-        };
+        }
 
-        const selectVoice = () => {
+        function selectVoice() {
           const voices = speechSynthesis.getVoices();
-          const preferredNames = ["Google UK English Female", "Samantha",
-            "Serena", "Karen",
+          const preferredNames = [
+            "Google UK English Female",
+            "Samantha",
+            "Serena",
+            "Karen",
             "Microsoft Zira Desktop - English (United States)"
           ];
           for (const name of preferredNames) {
             const v = voices.find(voice => voice.name === name);
             if (v) return v;
           }
-          return voices.find(v => v.lang.startsWith("en") && v.name
-            .toLowerCase().includes("female")) || voices[0];
-        };
+          return voices.find(v => v.lang && v.lang.startsWith("en")) ||
+            voices[0];
+        }
 
-        const speakNext = () => {
-          if (currentIndex >= sentenceSpans.length) {
+        // ========= Scalable dedupe: pick deepest readable units only =========
+        // A block is eligible if it is readable, visible, not in skipped subtree,
+        // AND it does NOT contain any other readable element inside it (deepest-first).
+        // Exception: caption is treated as its own unit; table cells (td/th) are read only if they don't contain other readable units.
+        function containsReadableDescendant(el) {
+          // Any readable descendant (excluding itself) that is not in SKIP and visible counts.
+          // This handles nested lists, paragraphs inside cells, etc.
+          const descendants = el.querySelectorAll(READABLE);
+          for (const d of descendants) {
+            if (d === el) continue;
+            if (!isVisible(d)) continue;
+            if (d.closest(SKIP_SELECTOR)) continue;
+            // If descendant has real text, it will be read separately -> so el should be skipped
+            if (normalizeForSpeech(d.innerText).length > 0) return true;
+          }
+          return false;
+        }
+
+        // Get candidate blocks in DOM order, then filter to deepest units
+        const candidateBlocks = Array.from(root.querySelectorAll(READABLE))
+          .filter(el => !el.closest(SKIP_SELECTOR))
+          .filter(isVisible)
+          .filter(el => normalizeForSpeech(el.innerText).length > 0);
+
+        const blocks = candidateBlocks.filter(el => !
+          containsReadableDescendant(el));
+
+        // ========= Build sentence queue =========
+        const queue = [];
+        for (const block of blocks) {
+          const {
+            rawText
+          } = buildBlockTextMap(block);
+          if (!rawText || !rawText.trim()) continue;
+
+          const sentences = splitSentencesWithRanges(rawText);
+          for (const s of sentences) {
+            queue.push({
+              text: s.text,
+              block,
+              start: s.start,
+              end: s.end
+            });
+          }
+        }
+
+        if (!queue.length) return;
+
+        // ========= Playback state =========
+        let currentIndex = 0;
+        let isSpeaking = false;
+        let isPaused = false;
+
+        function speakCurrent() {
+          if (currentIndex >= queue.length) {
             isSpeaking = false;
+            isPaused = false;
             btnEls["tts-play"].innerHTML = btnEls.playSvg;
+            clearSentenceHighlights();
             return;
           }
-          const text = sentenceSpans[currentIndex].textContent;
-          const utterance = new SpeechSynthesisUtterance(text);
+
+          const item = queue[currentIndex];
+
+          // Highlight current sentence
+          highlightSentence(item.block, item.start, item.end);
+
+          // Scroll block into view
+          item.block.scrollIntoView({
+            behavior: "smooth",
+            block: "center"
+          });
+
+          const utterance = new SpeechSynthesisUtterance(item.text);
           utterance.voice = selectVoice();
           utterance.rate = 1;
           utterance.pitch = 1;
-          utterance.onstart = () => {
-            highlightSentence(currentIndex);
-            const span = sentenceSpans[currentIndex];
-            if (span) span.scrollIntoView({
-              behavior: "smooth",
-              block: "center"
-            });
-          };
+
           utterance.onend = () => {
             if (!isPaused) {
               currentIndex++;
-              speakNext();
+              speakCurrent();
             }
           };
+
           speechSynthesis.speak(utterance);
-        };
+        }
 
-        if (!sentenceSpans.length) wrapSentences();
-
-        // --- Button Events ---
+        // ========= Button events =========
         btnEls["tts-play"].addEventListener("click", () => {
           if (!isSpeaking) {
-            currentIndex = 0;
+            speechSynthesis.cancel();
+            clearSentenceHighlights();
+            currentIndex = getFirstVisibleIndex(queue);
             isSpeaking = true;
             isPaused = false;
             btnEls["tts-play"].innerHTML = btnEls.pauseSvg;
-            speakNext();
-          } else if (isPaused) {
+            speakCurrent();
+            return;
+          }
+
+          if (isPaused) {
             speechSynthesis.resume();
             isPaused = false;
             btnEls["tts-play"].innerHTML = btnEls.pauseSvg;
@@ -493,26 +717,34 @@
         });
 
         btnEls["tts-prev"].addEventListener("click", () => {
-          if (!sentenceSpans.length) return;
           speechSynthesis.cancel();
+          clearSentenceHighlights();
           currentIndex = Math.max(currentIndex - 1, 0);
-          isPaused = false;
           isSpeaking = true;
+          isPaused = false;
           btnEls["tts-play"].innerHTML = btnEls.pauseSvg;
-          speakNext();
+          speakCurrent();
         });
 
         btnEls["tts-next"].addEventListener("click", () => {
-          if (!sentenceSpans.length) return;
           speechSynthesis.cancel();
-          currentIndex = Math.min(currentIndex + 1, sentenceSpans
-            .length - 1);
-          isPaused = false;
+          clearSentenceHighlights();
+          currentIndex = Math.min(currentIndex + 1, queue.length - 1);
           isSpeaking = true;
+          isPaused = false;
           btnEls["tts-play"].innerHTML = btnEls.pauseSvg;
-          speakNext();
+          speakCurrent();
         });
+
+        window.addEventListener("beforeunload", () => {
+          speechSynthesis.cancel();
+          clearSentenceHighlights();
+        });
+
+        // Voice list may load late in Chrome; no-op handler keeps it current
+        speechSynthesis.onvoiceschanged = () => {};
       }
+
 
       function buildFeedbackButton(config) {
         if (!config.feedback || !config.feedback.enable) return;
@@ -547,7 +779,7 @@
         background: rgba(0,0,0,0.7); z-index: 10000; padding: 20px;
       }
       .feedback-wrapper {
-        width: 100%; max-width: 600px; height: 80%;
+        width: 100%; max-width: 800px; height: 80%;
         background: #fff; border-radius: 8px; overflow: hidden; position: relative;
       }
       .feedback-close {
@@ -805,11 +1037,15 @@
 
       // ✅ Helper: add fullscreen icons to images
       function addFullscreenIcons(containerSelector) {
-        const images = document.querySelectorAll(`${containerSelector} img`);
+        const images = document.querySelectorAll(
+          `${containerSelector} img`);
 
         images.forEach(img => {
           const processImage = () => {
-            const { width, height } = img;
+            const {
+              width,
+              height
+            } = img;
 
             if (width < 100 || height < 100) return;
 
@@ -883,12 +1119,13 @@
               wrapper.appendChild(linkBtn);
 
               linkBtn.addEventListener("click", e => {
-                e.stopPropagation();   // prevents event bubbling
-                window.open(parentLink.href, "_blank"); // open the link
+                e.stopPropagation(); // prevents event bubbling
+                window.open(parentLink.href,
+                  "_blank"); // open the link
               });
             }
 
-            const resizeObserver = new ResizeObserver(() => { });
+            const resizeObserver = new ResizeObserver(() => {});
             resizeObserver.observe(img);
           };
 
@@ -921,6 +1158,127 @@
         });
       }
 
+      function buildBanner() {
+        if (document.getElementById("learn-navigation")) return;
+
+        // Helper: generate a random light color
+        function randomLightColor() {
+          const r = Math.floor(180 + Math.random() * 75); // 180–255
+          const g = Math.floor(180 + Math.random() * 75);
+          const b = Math.floor(180 + Math.random() * 75);
+          return `rgb(${r},${g},${b})`;
+        }
+
+        const color1 = randomLightColor();
+        const color2 = randomLightColor();
+
+        const temp = document.createElement("div");
+        temp.innerHTML = `
+<div id="full-screen-overlay" style="
+    top: 0;
+    left: 0;
+      width: 100%;
+      height: 50vh;
+      background: linear-gradient(135deg, ${color1}, ${color2});
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 10000;
+    ">
+    <div style="color: black; text-align: center; width: 80%">
+    <h1 style="font-size: 3rem">Welcome to Health inequalities Module</h1>
+    <br>
+    <br>
+    <h2 style="font-size: 2rem">Course Name</h2>
+    <h3 style="font-size: 1rem">Instructor Name</h3>
+    </div>
+    </div>
+  `;
+
+        document.body.prepend(temp.firstElementChild);
+      }
+
+      function buildLearnNav() {
+        // Avoid duplicates
+        if (document.getElementById("learn-navigation")) return;
+
+        const currentUrl = window.location.href;
+        const id = new URL(currentUrl).searchParams.get("id") || "";
+
+        // Dynamic links
+        const classicLink = id ?
+          `https://moodle.telt.unsw.edu.au/mod/book/view.php?id=${id}` :
+          "#";
+        const interactiveLink = id ?
+          `https://moodle.telt.unsw.edu.au/mod/book/tool/print/index.php?id=${id}` :
+          "#";
+
+        // Build HTML
+        const temp = document.createElement("div");
+        temp.innerHTML = `
+    <div style="padding: 1.5rem 1.5rem;">
+      <div style="
+        max-width: 700px;
+        margin: 0 auto;
+        padding: 1rem;
+        background: #f5f5f5;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      ">
+        <h4 style="text-align: center;">Select your ways to navigate learning</h4>
+        <div id="learn-navigation" style="
+          display: flex;
+          justify-content: center;
+          gap: 1rem;
+          border-radius: 6px;
+        ">
+          <a href="${classicLink}" style="
+  text-decoration: none;
+  padding: 0.5rem 1rem;
+  background: #000;
+  border-radius: 4px;
+  color: #fff;
+">Classic Moodle Book</a>
+
+<a href="${interactiveLink}" style="
+  text-decoration: none;
+  padding: 0.5rem 1rem;
+  background: #000;
+  border-radius: 4px;
+  color: #fff;
+">Interactive One Pager</a>
+        </div>
+      </div>
+    </div>
+  `;
+
+        const newElement = temp.firstElementChild;
+
+        // --- Condition 1: on /mod/book/view.php ---
+        if (currentUrl.includes("book/tool")) {
+          document.body.insertBefore(newElement, document.body.children[1]);
+          return;
+        }
+
+        // --- Condition 2: on /book/tool ---
+        if (currentUrl.includes("mod/book/view.php") && !document
+          .querySelector("#mod_book-chaptersnavigation .btn-previous")) {
+          const chapterContainer = document.querySelector(
+            "#mod_book-chapter .no-overflow");
+          if (chapterContainer) {
+            chapterContainer.prepend(newElement);
+          } else {
+            console.warn(
+              "Could not find #mod_book-chapter .no-overflow to append learn navigation."
+            );
+          }
+          return;
+        }
+
+        // Fallback (optional)
+        document.body.appendChild(newElement);
+      }
+
       // ✅ Apply configs dynamically
       PAGE_CONFIGS.forEach(config => {
         if (window.location.pathname.includes(config.urlIncludes)) {
@@ -939,7 +1297,8 @@
           );
 
           // Add fullscreen icons if enabled
-          if (config.enableFullscreenImages && config.imageContainers) {
+          if (config.enableFullscreenImages && config
+            .imageContainers) {
             config.imageContainers.forEach(container =>
               addFullscreenIcons(container));
           }
@@ -951,6 +1310,10 @@
           if (config.tts) buildTTSButton();
 
           if (config.navBar) buildNavBar(config);
+
+          if (config.banner) buildBanner();
+
+          if (config.learnNav) buildLearnNav();
 
         }
       });
