@@ -1,6 +1,6 @@
 ## Text-to-speech (TTS)
 
-Text-to-speech (TTS) feature reads all text content on the page for the students. It also allows students to control what it reads using the previous/skip buttons.
+Text-to-speech (TTS) reads visible text content on the page aloud for students. It also adds previous, play or pause, and next controls so students can move through the content at their own pace.
 
 ## Customise
 
@@ -11,8 +11,10 @@ const PAGE_CONFIGS = [{
 }]
 ```
 
+Set `tts` to `true` to turn the feature on, or `false` to turn it off.
+
 ## Limitation
 
-- The text-to-speech feature only works in one-page mode.
-- Does not read text inside H5P or any content inside iframe.
-
+- The text-to-speech feature is only enabled for page configurations where `tts` is turned on.
+- It does not read content inside H5P activities, iframes, form controls, or hidden elements.
+- Available voices depend on the browser and device, so the selected voice may vary between users.
